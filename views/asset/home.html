@@ -1,0 +1,17 @@
+{{extend 'layout.html'}}
+<h1>Inventory Management Tool</h1>
+<p>{{=body}}</p>
+<div class="container">
+    <div class="row">
+        <div class="card-deck">
+            {{for users in user:}}
+                <div class="card text-white bg-dark mb-3" style="max-width: 18rem;">
+                    <div class="card-header">{{=users.capitalize()}}</div>
+                    <div class="card-body">
+                        <p class="card-text">{{=user_manual[users]}}</p>
+                    </div>
+                </div>
+            {{pass}}
+        </div>
+    </div>
+</div>
