@@ -14,3 +14,7 @@ def home():
     db.commit()
     response.flash = T("Welcome to Inventory Manager")
     return HomePageData().body
+
+@auth.requires_login()
+def asset_category():
+
