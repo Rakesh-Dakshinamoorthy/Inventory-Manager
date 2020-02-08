@@ -22,5 +22,6 @@ db.define_table('team_members',
 db.define_table('asset_category',
                 Field('category', requires=(IS_NOT_EMPTY(), IS_NOT_IN_DB(db, 'asset_category.category'))),
                 Field('description', 'text', requires=(IS_NOT_EMPTY(), IS_LENGTH(1024))),
-                Field('image', 'upload', default=''),
+                Field('image', 'upload',
+                      uploadfolder='applications/inventory_manager/uploads/images/category'),
                 format="%(category)s")

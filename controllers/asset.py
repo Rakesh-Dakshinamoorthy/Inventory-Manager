@@ -15,6 +15,26 @@ def home():
     response.flash = T("Welcome to Inventory Manager")
     return HomePageData().body
 
+
 @auth.requires_login()
 def asset_category():
+    db.asset_category.id.readable = db.asset_category.image.readable = False
+    grid = SQLFORM.grid(db.asset_category, searchable=True, csv=False, editable=False, deletable=False,
+                        details=False, create=False,
+                        maxtextlengths={'asset_category.category': 20, 'asset_category.description': 80})
+    add_button = BUTTON("Add Category", _type="button", _class="btn btn-primary",
+                        **{'_data-toggle': "modal", '_data-target': "#addcategory"})
+    grid.elements(_class='web2py_console  ')[0].components[0] = add_button
+
+    return locals()
+
+
+def add_category():
+    form = SQLFORM.factory(db.asset_category)
+    if form.process().accepted:
+        db.asset_category.insert(**form.vars)
+        db.commit
+        redirect(URL('asset', 'asset_category.html'), client_side=True)
+        response.flash = "Asset category is added"
+    return form
 
