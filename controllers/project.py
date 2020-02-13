@@ -7,12 +7,19 @@ def team():
     # Grid to display the teams
     db.team.id.readable = db.team.manager_name.readable = db.team.lead_name.readable = False
     manager_btn = lead_btn = member_btn = False
-    manager_button = lambda row: A("Assign Manager", _class="button btn btn-secondary", _href="#assignmanager",
-                                   **{'_data-toggle': "modal", '_data-rowid': row.team_name})
-    lead_button = lambda row: A("Assign Lead", _class="button btn btn-secondary", _href="#assignlead",
-                                **{'_data-toggle': "modal", '_data-rowid': row.team_name})
-    member_button = lambda row: A("Assign Member", _class="button btn btn-secondary", _href="#assignmember",
-                                  **{'_data-toggle': "modal", '_data-rowid': row.team_name})
+
+    def manager_button(row):
+        return A("Assign Manager", _class="button btn btn-secondary", _href="#assignmanager",
+                 **{'_data-toggle': "modal", '_data-rowid': row.team_name})
+
+    def lead_button(row):
+        return A("Assign Manager", _class="button btn btn-secondary", _href="#assignmanager",
+                 **{'_data-toggle': "modal", '_data-rowid': row.team_name})
+
+    def member_button(row):
+        return A("Assign Member", _class="button btn btn-secondary", _href="#assignmember",
+                 **{'_data-toggle': "modal", '_data-rowid': row.team_name})
+
     user = db(db.users.user_data == auth.user).select().first()
 
     if auth.has_membership(group_id=10):
@@ -56,7 +63,7 @@ def add_team():
     form = SQLFORM.factory(db.team)
     if form.process().accepted:
         user = db(db.users.user_data == auth.user).select().first()
-        team_id = db.team.insert(team_name=form.vars.team_name, manager_name=user, lead_name=user)
+        db.team.insert(team_name=form.vars.team_name, manager_name=user, lead_name=user)
         db.commit
         response.flash = "Team is added"
         redirect(URL('project', 'team.html'), client_side=True)
@@ -92,8 +99,7 @@ def assign_lead():
 
 @auth.requires_signature()
 def assign_member():
-    members = list(map(lambda man: man.user_name, db(db.users.user_data.belongs(
-        list(map(lambda each: each.user_id, db(db.auth_membership.group_id == 11).select())))).select()))
+    members = list(map(lambda man: man.user_name, db().select(db.users.user_name)))
     assign_member_form = SQLFORM.factory(Field('Team'), Field('Member', requires=IS_IN_SET(members)))
     if assign_member_form.process().accepted:
         team = db(db.team.team_name == assign_member_form.vars.Team).select().first()
@@ -103,28 +109,6 @@ def assign_member():
             db.team_members.insert(team_name=team, member_name=member_name)
         redirect(URL('project', 'team.html'), client_side=True)
     return assign_member_form
-
-
-@auth.requires_membership(group_id=10)
-def managers():
-    managers = db(db.auth_membership.group_id == 2).select(db.auth_membership.user_id)
-    managers = list(map(lambda man: "{} {}".format(man.user_id.first_name, man.user_id.last_name), managers))
-    managers_updated = list(map(lambda man: man.Manager, db().select(db.managers.Manager)))
-    managers_to_update = list(filter(lambda man: man not in managers_updated, managers))
-    for manager in managers_to_update:
-        db.managers.insert(Manager=manager)
-    db.commit()
-    db.managers.id.readable = False
-    db.managers.Lead_name.readable = False
-    buttons = [lambda row: BUTTON("Add Lead", _type="button",
-                                  _class="btn btn-default btn-secondary",
-                                  **{'_data-toggle': "modal",
-                                     '_data-target': "#addlead",
-                                     '_data-rowid': row.Manager})]
-    grid = SQLFORM.grid(db.managers, searchable=False, csv=False,
-                        editable=False, deletable=False, details=False,
-                        create=False, maxtextlength=70, links=buttons)
-    return locals()
 
 
 @auth.requires_membership(group_id=10)
@@ -141,7 +125,6 @@ def users():
     return locals()
 
 
-@auth.requires_signature()
 def permission():
     permissions = list(map(lambda perm: perm.role, db().select(db.auth_group.role)))
     form = SQLFORM.factory(Field('user'), Field('permission', requires=IS_IN_SET(permissions)))

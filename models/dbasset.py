@@ -17,11 +17,20 @@ db.define_table("team",
 db.define_table('team_members',
                 Field('team_name', db.team, label='Team'),
                 Field('member_name', db.users, label='Member'),
-                format="%(member_name)")
+                format=lambda r: r.member_name.user_name)
 
 db.define_table('asset_category',
                 Field('category', requires=(IS_NOT_EMPTY(), IS_NOT_IN_DB(db, 'asset_category.category'))),
                 Field('description', 'text', requires=(IS_NOT_EMPTY(), IS_LENGTH(1024))),
-                Field('image', 'upload',
-                      uploadfolder='applications/inventory_manager/uploads/images/category'),
                 format="%(category)s")
+
+db.define_table('asset',
+                Field('asset_id', requires=(IS_NOT_EMPTY(), IS_NOT_IN_DB(db, 'asset.asset_id'))),
+                Field('category', db.asset_category),
+                Field('name', requires=IS_NOT_EMPTY()),
+                Field('procurement_id', requires=IS_NOT_EMPTY()),
+                Field('assigned_to', db.users),
+                Field('remarks', 'string'),
+                Field('hardware_status', requires=IS_IN_SET(('Working', 'Not Working'))),
+                Field('modified_on', 'datetime', default=request.now, update=request.now),
+                format="%(asset_id)s %(name)s")
