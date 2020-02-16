@@ -7,7 +7,7 @@
 # ---- example index page ----
 @auth.requires_login()
 def index():
-    redirect(URL('asset', 'home'))
+    redirect(URL('asset', 'view'))
 
 # ---- API (example) -----
 @auth.requires_login()

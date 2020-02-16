@@ -1,11 +1,12 @@
 # import any files needed for development
+import pandas as pd
 from gluon.html import BUTTON
 
 
 @auth.requires_login()
 def team():
     # Grid to display the teams
-    db.team.id.readable = db.team.manager_name.readable = db.team.lead_name.readable = False
+    db.team.id.readable = False
     manager_btn = lead_btn = member_btn = False
 
     def manager_button(row):
@@ -25,10 +26,10 @@ def team():
     if auth.has_membership(group_id=10):
         buttons = [manager_button, lead_button, member_button]
         query = db.team
-        width = 'width:420px'
+        width = 'width:450px'
         manager_btn = lead_btn = member_btn = True
     elif auth.has_membership(group_id=2):
-        width = 'width:280px'
+        width = 'width:300px'
         query = db(db.team.manager_name == user)
         buttons = [lead_button, member_button]
         lead_btn = member_btn = True
@@ -135,3 +136,26 @@ def permission():
         redirect(URL('project', 'users.html'), client_side=True)
 
     return form
+
+@auth.requires_login()
+def dashboard():
+    user_id = request.args[0]
+    user = db(db.users.id == user_id).select().first()
+    membership = db(db.auth_membership.user_id == user.user_data.id).select().first().group_id.id
+    # dashboard_data = {2: _get_manager_dashboard,
+    #                   3: _get_lead_dashboard,
+    #                   11: _get_tester_dashboard,
+    #                   10: _get_owner_dashboard}
+    # return dashboard_data[membership](user)
+    return _get_tester_dashboard(user)
+
+
+def _get_tester_dashboard(user):
+    assets = pd.DataFrame(db(db.asset.assigned_to == user).select().as_list())
+    categories_count = dict(assets.category.value_counts())
+    categories = pd.DataFrame(db(db.asset_category.id>0).select().as_list())
+    return {'categories': categories, 'count': dict(assets.category.value_counts())}
+
+@auth.requires_login()
+def index():
+    redirect(URL('project', 'team'))

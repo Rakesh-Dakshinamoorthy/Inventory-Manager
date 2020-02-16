@@ -89,4 +89,9 @@ def home():
     return "this is sample"
 
 
+@auth.requires_login()
+def index():
+    redirect(URL('asset', 'view'))
+
+
 
