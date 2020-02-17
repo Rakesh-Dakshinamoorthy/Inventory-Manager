@@ -29,7 +29,7 @@
             </button>
           </div>
           <div class="modal-body">
-            {{=LOAD('project', 'assign_lead.load', ajax=True, ajax_trap=True,
+            {{=LOAD('project', 'assign_lead.load', vars={'leads': leads}, ajax=True, ajax_trap=True,
             user_signature=True)}}
           </div>
         </div>
@@ -48,7 +48,7 @@
             </button>
           </div>
           <div class="modal-body">
-              {{=LOAD('project', 'assign_manager.load', ajax=True, ajax_trap=True, user_signature=True)}}
+              {{=LOAD('project', 'assign_manager.load', vars={'managers': managers}, ajax=True, ajax_trap=True, user_signature=True)}}
           </div>
         </div>
       </div>
@@ -66,7 +66,7 @@
             </button>
           </div>
           <div class="modal-body">
-            {{=LOAD('project', 'assign_member.load', ajax=True, ajax_trap=True, user_signature=True)}}
+            {{=LOAD('project', 'assign_member.load', vars={'members': members}, ajax=True, ajax_trap=True, user_signature=True)}}
           </div>
         </div>
       </div>

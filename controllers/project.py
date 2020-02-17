@@ -1,6 +1,7 @@
 # import any files needed for development
 import pandas as pd
 from gluon.html import BUTTON
+from helpers import TeamDB, UsersDB, AssetDB
 
 
 @auth.requires_login()
@@ -8,13 +9,16 @@ def team():
     # Grid to display the teams
     db.team.id.readable = False
     manager_btn = lead_btn = member_btn = False
-
+    users = UsersDB(db)
+    managers = list(map(lambda each: each.user_name, users.managers()))
+    leads = list(map(lambda each: each.user_name, users.leads()))
+    members = list(map(lambda each: each.user_name, users.get_users()))
     def manager_button(row):
         return A("Assign Manager", _class="button btn btn-secondary", _href="#assignmanager",
                  **{'_data-toggle': "modal", '_data-rowid': row.team_name})
 
     def lead_button(row):
-        return A("Assign Manager", _class="button btn btn-secondary", _href="#assignmanager",
+        return A("Assign Lead", _class="button btn btn-secondary", _href="#assignlead",
                  **{'_data-toggle': "modal", '_data-rowid': row.team_name})
 
     def member_button(row):
@@ -73,11 +77,7 @@ def add_team():
 
 @auth.requires_signature()
 def assign_manager():
-    managers = list(map(lambda man: man.user_name, db(db.users.user_data.belongs(
-        list(map(lambda each: each.user_id, db(db.auth_membership.group_id == 2).select())))).select()))
-
-    assign_manager_form = SQLFORM.factory(Field('Team'), Field('Manager', requires=IS_IN_SET(managers)))
-
+    assign_manager_form = SQLFORM.factory(Field('Team'), Field('Manager', requires=IS_IN_SET(request.vars.managers)))
     if assign_manager_form.process().accepted:
         manager_name = db(db.users.user_name == assign_manager_form.vars.Manager).select().first()
         db(db.team.team_name == assign_manager_form.vars.Team).update(manager_name=manager_name)
@@ -87,10 +87,7 @@ def assign_manager():
 
 @auth.requires_signature()
 def assign_lead():
-    leads = list(map(lambda man: man.user_name, db(db.users.user_data.belongs(
-        list(map(lambda each: each.user_id, db(db.auth_membership.group_id == 3).select())))).select()))
-    assign_lead_form = SQLFORM.factory(Field('Team'), Field('Lead_name', requires=IS_IN_SET(leads), label='Lead'))
-
+    assign_lead_form = SQLFORM.factory(Field('Team'), Field('Lead_name', requires=IS_IN_SET(request.vars.leads), label='Lead'))
     if assign_lead_form.process().accepted:
         lead_name = db(db.users.user_name == assign_lead_form.vars.Lead_name).select().first()
         db(db.team.team_name == assign_lead_form.vars.Team).update(lead_name=lead_name)
@@ -100,8 +97,7 @@ def assign_lead():
 
 @auth.requires_signature()
 def assign_member():
-    members = list(map(lambda man: man.user_name, db().select(db.users.user_name)))
-    assign_member_form = SQLFORM.factory(Field('Team'), Field('Member', requires=IS_IN_SET(members)))
+    assign_member_form = SQLFORM.factory(Field('Team'), Field('Member', requires=IS_IN_SET(request.vars.members)))
     if assign_member_form.process().accepted:
         team = db(db.team.team_name == assign_member_form.vars.Team).select().first()
         member_name = db(db.users.user_name == assign_member_form.vars.Member).select().first()
@@ -139,22 +135,33 @@ def permission():
 
 @auth.requires_login()
 def dashboard():
-    user_id = request.args[0]
-    user = db(db.users.id == user_id).select().first()
-    membership = db(db.auth_membership.user_id == user.user_data.id).select().first().group_id.id
+    user_id = int(request.args[0])
+    users = UsersDB(db)
+    membership = db(db.auth_membership.user_id == users.user_id_map()[user_id].user_data.id).select().first().group_id.id
     # dashboard_data = {2: _get_manager_dashboard,
     #                   3: _get_lead_dashboard,
     #                   11: _get_tester_dashboard,
     #                   10: _get_owner_dashboard}
     # return dashboard_data[membership](user)
-    return _get_tester_dashboard(user)
+    return _get_tester_dashboard(user_id)
 
 
-def _get_tester_dashboard(user):
-    assets = pd.DataFrame(db(db.asset.assigned_to == user).select().as_list())
-    categories_count = dict(assets.category.value_counts())
-    categories = pd.DataFrame(db(db.asset_category.id>0).select().as_list())
-    return {'categories': categories, 'count': dict(assets.category.value_counts())}
+def member():
+    user_id = int(request.args[0])
+    assets = AssetDB(db)
+    assets_df = assets.user_assets_df(user_id)
+    categories = dict(list(map(lambda category: (assets.category_name(category[0]), category[1]),
+                               dict(assets_df.category.value_counts()).items())))
+    data = {'categories': categories, 'assets': len(assets_df.index)}
+    grid = SQLFORM.grid(db(db.asset.assigned_to == assets.user_id_map().get(user_id)), paginate=50,
+                        searchable=False, csv=False, editable=False, deletable=False, details=False, create=False)
+    return locals()
+
+def _get_tester_dashboard(user_id):
+    assets = AssetDB(db)
+    assets_df = assets.user_assets_df(user_id)
+    categories = dict(list(map(lambda category: (assets.category_name(category[0]), category[1]), dict(assets_df.category.value_counts()).items())))
+    return {'categories': categories, 'assets': len(assets_df.index)}
 
 @auth.requires_login()
 def index():

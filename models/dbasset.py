@@ -17,7 +17,7 @@ db.define_table("team",
 db.define_table('team_members',
                 Field('team_name', db.team, label='Team'),
                 Field('member_name', db.users, label='Member'),
-                format=lambda r: r.member_name.user_name)
+                format=lambda r: "{} {}".format(r.member_name.user_name, r.team_name.team_name))
 
 db.define_table('asset_category',
                 Field('category', requires=(IS_NOT_EMPTY(), IS_NOT_IN_DB(db, 'asset_category.category'))),

@@ -1,11 +1,11 @@
 # import any files needed for development
 from web_page_data import AboutPage
+from helpers import UsersDB
 
 @auth.requires_login()
 def about():
-    users = db().select(db.auth_user.ALL)
-    users_exist = list(map(lambda user: user.user_data.id, db().select(db.users.ALL)))
-    users_to_add = list(filter(lambda user: user.id not in users_exist, users))
+    database = UsersDB(db)
+    users_to_add = database.get_newly_added_user()
     for user in users_to_add:
         db.users.insert(user_data=user, user_name="{} {}".format(
             user.first_name, user.last_name))
