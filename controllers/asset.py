@@ -39,10 +39,19 @@ def add_category():
 
 def view():
     db.asset.id.readable = False
+    database = UsersDB(db)
+    users = list(database.user_name_map().keys())
     form = add()
+    delete = True
     add_button = BUTTON("Add Asset", _type="button", _class="btn btn-primary",
                         **{'_data-toggle': "modal", '_data-target': "#addasset"})
+
+    def change_assignee(row):
+        return A("Change Assignee", _class="button btn btn-secondary", _href="#changeassignee",
+                 **{'_data-toggle': "modal", '_data-rowid': row.asset_id})
+
     user = db(db.users.user_data == auth.user).select().first()
+
     if auth.has_membership(group_id=10):
         query = db.asset
     elif auth.has_membership(group_id=2):
@@ -63,10 +72,11 @@ def view():
         members.extend(list(map(lambda each: each.member_name, team_members)))
         query = db(db.asset.assigned_to.belongs(set(members)))
     else:
+        delete = False
         query = db(db.asset.assigned_to == user)
 
     db.asset.modified_on.readable = False
-    grid = SQLFORM.grid(query, searchable=True, csv=False, editable=False, deletable=False,
+    grid = SQLFORM.grid(query, links=[change_assignee], searchable=True, csv=False, editable=False, deletable=delete,
                         details=False, create=False)
     grid.elements(_class='web2py_console  ')[0].components[0] = add_button
 
@@ -85,8 +95,19 @@ def add():
     return form
 
 
+def change_assignee():
+
+    assign_to_form = SQLFORM.factory(Field('Asset'), Field('assigned_to',
+                                                           requires=IS_IN_SET(request.vars.users)))
+    if assign_to_form.process().accepted:
+        assigned_to = db(db.users.user_name == assign_to_form.vars.assigned_to).select().first()
+        db(db.asset.asset_id == assign_to_form.vars.Asset).update(assigned_to=assigned_to)
+        redirect(URL('asset', 'view.html'), client_side=True)
+    return assign_to_form
+
+
 def home():
-    return "this is sample"
+    redirect(URL('asset', 'view'))
 
 
 @auth.requires_login()

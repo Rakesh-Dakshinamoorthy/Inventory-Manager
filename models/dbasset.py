@@ -2,6 +2,10 @@
 auth = Auth(db)
 auth.settings.create_user_groups = None
 auth.settings.everybody_group_id = 11
+mail = auth.settings.mailer
+mail.settings.server = 'smtp.gmail.com:587'
+mail.settings.sender = 'rakesh.roczs@gmail.com'
+mail.settings.login = 'rakesh.roczs@gmail.com:Rak!11!92'
 
 db.define_table('users',
                 Field('user_data', db.auth_user),

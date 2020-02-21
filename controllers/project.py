@@ -108,8 +108,10 @@ def assign_member():
     return assign_member_form
 
 
-@auth.requires_membership(group_id=10)
 def users():
+    if not(auth.has_membership(group_id=2) or auth.has_membership(group_id=10)):
+        redirect(URL('default', 'user', args=['not_authorized']))
+
     db.users.id.readable = False
     db.users.user_data.readable = False
     form = permission()
