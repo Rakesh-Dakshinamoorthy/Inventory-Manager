@@ -36,8 +36,7 @@
     <div class="w2p_flash alert alert-dismissable">{{=response.flash or ''}}</div>
     <!-- Navbar ======================================= -->
     <nav class="navbar navbar-light navbar-expand-md bg-faded bg-dark navbar-dark justify-content-center">
-       <a href="http://web2py.com" class="navbar-brand d-flex w-50
-       mr-auto">Inventory Manager</a>
+        {{=A('Inventory Manager', _class="navbar-brand d-flex w-50 mr-auto", callback=URL('asset', 'home'))}}
        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
          <span class="navbar-toggler-icon"></span>
        </button>
@@ -100,11 +99,11 @@
       {{=response.toolbar() if response.show_toolbar else ''}}
     </div>
     {{block footer}} <!-- this is default footer -->
-    <footer class="footer container-fluid">
+    <footer class="footer container-fluid" STYLE="background-color: transparent">
       <div class="row">
         <div class="col-md-12">
-          <div class="copyright pull-left">{{=response.footer}}</div>
-          <div id="poweredBy" class="pull-right">
+          <div class="copyright pull-left" style="color: #007bff">{{=response.footer}}</div>
+          <div id="poweredBy" class="pull-right" style="color: #007bff">
             {{=T('Powered by')}}
             <a href="https://www.wipro.com">Wipro Ltd</a>
           </div>

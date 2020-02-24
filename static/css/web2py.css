@@ -311,3 +311,20 @@ li.w2p_grid_breadcrumb_elem {
 .web2py_console .form-control {width: 20%; display: inline;}
 .web2py_console #w2p_keywords {width: 50%;}
 .web2py_search_actions a, .web2py_console input[type=submit], .web2py_console input[type=button], .web2py_console button { padding: 6px 12px; }
+
+.bg-image {
+  /* The image used */
+  background-color: #0F192A;
+
+  /* Add the blur effect */
+  filter: blur(8px);
+  -webkit-filter: blur(8px);
+
+  /* Full height */
+  height: 100%;
+
+  /* Center and scale the image nicely */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}

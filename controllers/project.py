@@ -8,7 +8,7 @@ from helpers import TeamDB, UsersDB, AssetDB
 def team():
     # Grid to display the teams
     db.team.id.readable = False
-    manager_btn = lead_btn = member_btn = False
+    manager_btn = lead_btn = member_btn = delete = False
     users = UsersDB(db)
     managers = list(map(lambda each: each.user_name, users.managers()))
     leads = list(map(lambda each: each.user_name, users.leads()))
@@ -30,8 +30,8 @@ def team():
     if auth.has_membership(group_id=10):
         buttons = [manager_button, lead_button, member_button]
         query = db.team
-        width = 'width:450px'
-        manager_btn = lead_btn = member_btn = True
+        width = 'width:530px'
+        manager_btn = lead_btn = member_btn = delete = True
     elif auth.has_membership(group_id=2):
         width = 'width:300px'
         query = db(db.team.manager_name == user)
@@ -43,7 +43,7 @@ def team():
         buttons = [manager_button, member_button]
         manager_button = member_btn = True
 
-    grid = SQLFORM.grid(query, links=buttons, searchable=True, csv=False, editable=False, deletable=False,
+    grid = SQLFORM.grid(query, links=buttons, searchable=True, csv=False, editable=False, deletable=delete,
                         details=False, create=False)
     add_button = BUTTON("Add Team", _type="button", _class="btn btn-primary", **{'_data-toggle': "modal",
                                                                                  '_data-target': "#addteam"})

@@ -10,13 +10,17 @@ response.menu = [
 ]
 
 if auth.has_membership(group_id=3):
-    response.menu.append((T('Project'), False, URL('project', 'index'), []))
+    response.menu.extend([(T('Asset'), False, URL('asset', 'view'), []),
+                          (T('Project'), False, URL('project', 'index'), [])])
 elif auth.has_membership(group_id=2) or auth.has_membership(group_id=10):
     response.menu.append((T('Asset'), False, '#',
                           [(T('View'), False, URL('asset', 'view'), []),
                            (T('Category'), False, URL('asset', 'category'), [])]))
-    response.menu.append((T('Project'), False, '#', [(T('Team'), False, URL('project', 'team'), []), (T('Members'),
-                                                                                                      False, URL('project', 'users'), [])]))
+    response.menu.append((T('Project'), False, '#',
+                          [(T('Team'), False, URL('project', 'team'), []),
+                           (T('Members'), False, URL('project', 'users'), [])]))
+elif auth.has_membership(group_id=11):
+    response.menu.append((T('Asset'), False, URL('asset', 'view'), []))
 
 response.footer = "This tool is developed using web2py framework. " \
                   "Anyone having any ideas please contact the Owners " \

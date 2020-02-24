@@ -3,7 +3,7 @@ from web_page_data import AboutPage
 from helpers import UsersDB
 
 @auth.requires_login()
-def about():
+def home():
     database = UsersDB(db)
     users_to_add = database.get_newly_added_user()
     for user in users_to_add:
@@ -17,7 +17,10 @@ def about():
 @auth.requires_login()
 def category():
     db.asset_category.id.readable = False
-    grid = SQLFORM.grid(db.asset_category, searchable=True, csv=False, editable=False, deletable=False,
+    delete = False
+    if auth.has_membership(group_id=10):
+        delete = True
+    grid = SQLFORM.grid(db.asset_category, searchable=True, csv=False, editable=False, deletable=delete,
                         details=False, create=False,
                         maxtextlengths={'asset_category.category': 20, 'asset_category.description': 80})
     add_button = BUTTON("Add Category", _type="button", _class="btn btn-primary",
@@ -36,7 +39,7 @@ def add_category():
         redirect(URL('asset', 'category.html'), client_side=True)
     return form
 
-
+@auth.requires_login()
 def view():
     db.asset.id.readable = False
     database = UsersDB(db)
@@ -106,13 +109,9 @@ def change_assignee():
     return assign_to_form
 
 
-def home():
-    redirect(URL('asset', 'view'))
-
-
 @auth.requires_login()
 def index():
-    redirect(URL('asset', 'view'))
+    redirect(URL('asset', 'home'))
 
 
 
