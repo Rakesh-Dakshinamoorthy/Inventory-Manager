@@ -2,10 +2,6 @@
 auth = Auth(db)
 auth.settings.create_user_groups = None
 auth.settings.everybody_group_id = 11
-mail = auth.settings.mailer
-mail.settings.server = 'smtp.gmail.com:587'
-mail.settings.sender = 'rakesh.roczs@gmail.com'
-mail.settings.login = 'rakesh.roczs@gmail.com:Rak!11!92'
 
 db.define_table('users',
                 Field('user_data', db.auth_user),
@@ -36,5 +32,18 @@ db.define_table('asset',
                 Field('assigned_to', db.users),
                 Field('remarks', 'string'),
                 Field('hardware_status', requires=IS_IN_SET(('Working', 'Not Working'))),
-                Field('modified_on', 'datetime', default=request.now, update=request.now),
                 format="%(asset_id)s %(name)s")
+
+db.asset._before_delete.append(lambda s: delete_asset(s))
+
+db.define_table('asset_history',
+                Field('asset_id'),
+                Field('asset_operation', 'string',
+                      requires=(IS_NOT_EMPTY(), IS_IN_SET('created', 'changed assignee', 'changed status'))),
+                Field('information', 'text', requires=IS_NOT_EMPTY()),
+                Field('occurred_time', 'datetime', default=request.now),
+                Field('user_signature'))
+
+
+def delete_asset(row):
+    pass

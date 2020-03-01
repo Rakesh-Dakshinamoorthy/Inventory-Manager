@@ -45,7 +45,7 @@ def view():
     database = UsersDB(db)
     users = list(database.user_name_map().keys())
     form = add()
-    delete = True
+    delete = False
     add_button = BUTTON("Add Asset", _type="button", _class="btn btn-primary",
                         **{'_data-toggle': "modal", '_data-target': "#addasset"})
 
@@ -53,10 +53,12 @@ def view():
         return A("Change Assignee", _class="button btn btn-secondary", _href="#changeassignee",
                  **{'_data-toggle': "modal", '_data-rowid': row.asset_id})
 
+
     user = db(db.users.user_data == auth.user).select().first()
 
     if auth.has_membership(group_id=10):
         query = db.asset
+        delete = True
     elif auth.has_membership(group_id=2):
         team = db(db.team.manager_name == user).select()
         team_id = list(map(lambda each: each.id, team))
@@ -75,10 +77,8 @@ def view():
         members.extend(list(map(lambda each: each.member_name, team_members)))
         query = db(db.asset.assigned_to.belongs(set(members)))
     else:
-        delete = False
         query = db(db.asset.assigned_to == user)
 
-    db.asset.modified_on.readable = False
     grid = SQLFORM.grid(query, links=[change_assignee], searchable=True, csv=False, editable=False, deletable=delete,
                         details=False, create=False)
     grid.elements(_class='web2py_console  ')[0].components[0] = add_button
@@ -88,10 +88,12 @@ def view():
 
 def add():
     db.asset.assigned_to.writable = False
-    db.asset.modified_on.writable = False
     form = SQLFORM.factory(db.asset)
     if form.process().accepted:
-        db.asset.insert(**form.vars, **{'assigned_to': db(db.users.user_data == auth.user).select().first()})
+        user = db(db.users.user_data == auth.user).select().first()
+        asset_id = db.asset.insert(**form.vars, **{'assigned_to': user})
+        db.asset_history.insert(asset_id="{}:{}".format(asset_id.id, asset_id.name), asset_operation='created',
+                                information='Asset is newly added', user_signature=user.user_name)
         db.commit
         response.flash = "Asset is added"
         redirect(URL('asset', 'view.html'), client_side=True)
