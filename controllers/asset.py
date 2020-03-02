@@ -2,14 +2,9 @@
 from web_page_data import AboutPage
 from helpers import UsersDB
 
+
 @auth.requires_login()
 def home():
-    database = UsersDB(db)
-    users_to_add = database.get_newly_added_user()
-    for user in users_to_add:
-        db.users.insert(user_data=user, user_name="{} {}".format(
-            user.first_name, user.last_name))
-    db.commit()
     response.flash = T("Welcome to Inventory Manager")
     return AboutPage().body
 
@@ -39,6 +34,7 @@ def add_category():
         redirect(URL('asset', 'category.html'), client_side=True)
     return form
 
+
 @auth.requires_login()
 def view():
     db.asset.id.readable = False
@@ -52,7 +48,6 @@ def view():
     def change_assignee(row):
         return A("Change Assignee", _class="button btn btn-secondary", _href="#changeassignee",
                  **{'_data-toggle': "modal", '_data-rowid': row.asset_id})
-
 
     user = db(db.users.user_data == auth.user).select().first()
 
@@ -91,17 +86,18 @@ def add():
     form = SQLFORM.factory(db.asset)
     if form.process().accepted:
         user = db(db.users.user_data == auth.user).select().first()
-        asset_id = db.asset.insert(**form.vars, **{'assigned_to': user})
-        db.asset_history.insert(asset_id="{}:{}".format(asset_id.id, asset_id.name), asset_operation='created',
-                                information='Asset is newly added', user_signature=user.user_name)
+        db.asset.insert(**form.vars, **{'assigned_to': user})
         db.commit
         response.flash = "Asset is added"
         redirect(URL('asset', 'view.html'), client_side=True)
     return form
 
 
-def change_assignee():
+def update_asset():
+    pass
 
+
+def change_assignee():
     assign_to_form = SQLFORM.factory(Field('Asset'), Field('assigned_to',
                                                            requires=IS_IN_SET(request.vars.users)))
     if assign_to_form.process().accepted:
@@ -114,6 +110,3 @@ def change_assignee():
 @auth.requires_login()
 def index():
     redirect(URL('asset', 'home'))
-
-
-

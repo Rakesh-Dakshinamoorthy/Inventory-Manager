@@ -3,13 +3,14 @@ auth = Auth(db)
 auth.settings.create_user_groups = None
 auth.settings.everybody_group_id = 11
 
+
 db.define_table('users',
                 Field('user_data', db.auth_user),
                 Field('user_name', 'string', requires=IS_NOT_EMPTY()),
                 format='%(user_name)s')
 
-db.define_table("team",
-                Field("team_name", requires=(IS_NOT_EMPTY(), IS_NOT_IN_DB(db, 'team.team_name')), label="Team"),
+db.define_table('team',
+                Field('team_name', requires=(IS_NOT_EMPTY(), IS_NOT_IN_DB(db, 'team.team_name')), label='Team'),
                 Field('manager_name', db.users, label='Manager'),
                 Field('lead_name', db.users, label='Lead'),
                 format="%(team_name)s")
@@ -34,8 +35,6 @@ db.define_table('asset',
                 Field('hardware_status', requires=IS_IN_SET(('Working', 'Not Working'))),
                 format="%(asset_id)s %(name)s")
 
-db.asset._before_delete.append(lambda s: delete_asset(s))
-
 db.define_table('asset_history',
                 Field('asset_id'),
                 Field('asset_operation', 'string',
@@ -45,5 +44,18 @@ db.define_table('asset_history',
                 Field('user_signature'))
 
 
-def delete_asset(row):
-    pass
+def add_user(id):
+    user = db(db.auth_user.id == id).select().first()
+    db.users.insert(user_data=user, user_name="{} {}".format(user.first_name, user.last_name))
+    db.commit()
+
+
+def add_asset(id):
+    user = db(db.users.user_data == auth.user).select().first()
+    asset = db(db.asset.id == id).select().first()
+    db.asset_history.insert(asset_id="{}:{}".format(asset.id, asset.name), asset_operation='created',
+                            information='Asset is newly added', user_signature=user.user_name)
+
+
+db.auth_user._after_insert.append(lambda f, i: add_user(i))
+db.asset._after_insert.append(lambda f, i: add_asset(i))

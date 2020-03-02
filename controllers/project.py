@@ -1,7 +1,7 @@
 # import any files needed for development
 import pandas as pd
 from gluon.html import BUTTON
-from helpers import TeamDB, UsersDB, AssetDB
+from helpers import UsersDB, AssetDB
 
 
 @auth.requires_login()
@@ -13,6 +13,7 @@ def team():
     managers = list(map(lambda each: each.user_name, users.managers()))
     leads = list(map(lambda each: each.user_name, users.leads()))
     members = list(map(lambda each: each.user_name, users.get_users()))
+
     def manager_button(row):
         return A("Assign Manager", _class="button btn btn-secondary", _href="#assignmanager",
                  **{'_data-toggle': "modal", '_data-rowid': row.team_name})
@@ -77,7 +78,8 @@ def add_team():
 
 @auth.requires_signature()
 def assign_manager():
-    assign_manager_form = SQLFORM.factory(Field('Team'), Field('Manager', requires=IS_IN_SET(request.vars.managers)))
+    assign_manager_form = SQLFORM.factory(Field('Team'),
+                                          Field('Manager', requires=IS_IN_SET(request.vars.managers)))
     if assign_manager_form.process().accepted:
         manager_name = db(db.users.user_name == assign_manager_form.vars.Manager).select().first()
         db(db.team.team_name == assign_manager_form.vars.Team).update(manager_name=manager_name)
@@ -87,7 +89,8 @@ def assign_manager():
 
 @auth.requires_signature()
 def assign_lead():
-    assign_lead_form = SQLFORM.factory(Field('Team'), Field('Lead_name', requires=IS_IN_SET(request.vars.leads), label='Lead'))
+    assign_lead_form = SQLFORM.factory(Field('Team'),
+                                       Field('Lead_name', requires=IS_IN_SET(request.vars.leads), label='Lead'))
     if assign_lead_form.process().accepted:
         lead_name = db(db.users.user_name == assign_lead_form.vars.Lead_name).select().first()
         db(db.team.team_name == assign_lead_form.vars.Team).update(lead_name=lead_name)
@@ -97,13 +100,13 @@ def assign_lead():
 
 @auth.requires_signature()
 def assign_member():
-    assign_member_form = SQLFORM.factory(Field('Team'), Field('Member', requires=IS_IN_SET(request.vars.members)))
+    assign_member_form = SQLFORM.factory(Field('Team'),
+                                         Field('Member', requires=IS_IN_SET(request.vars.members)))
     if assign_member_form.process().accepted:
         team = db(db.team.team_name == assign_member_form.vars.Team).select().first()
         member_name = db(db.users.user_name == assign_member_form.vars.Member).select().first()
-        if db(db.team_members.team_name == team and
-              db.team_members.member_name == member_name).select().first() is None:
-            db.team_members.insert(team_name=team, member_name=member_name)
+        db.team_members.update_or_insert(db.team_members.member_name == member_name,
+                                         team_name=team, member_name=member_name)
         redirect(URL('project', 'team.html'), client_side=True)
     return assign_member_form
 
@@ -126,7 +129,8 @@ def users():
 
 def permission():
     permissions = list(map(lambda perm: perm.role, db().select(db.auth_group.role)))
-    form = SQLFORM.factory(Field('user'), Field('permission', requires=IS_IN_SET(permissions)))
+    form = SQLFORM.factory(Field('user'),
+                           Field('permission', requires=IS_IN_SET(permissions)))
     if form.process().accepted:
         user_id = db(db.users.user_name == form.vars.user).select().first().user_data
         group_id = db(db.auth_group.role == form.vars.permission).select().first()
@@ -134,6 +138,7 @@ def permission():
         redirect(URL('project', 'users.html'), client_side=True)
 
     return form
+
 
 @auth.requires_login()
 def dashboard():
@@ -159,11 +164,13 @@ def member():
                         searchable=False, csv=False, editable=False, deletable=False, details=False, create=False)
     return locals()
 
+
 def _get_tester_dashboard(user_id):
     assets = AssetDB(db)
     assets_df = assets.user_assets_df(user_id)
     categories = dict(list(map(lambda category: (assets.category_name(category[0]), category[1]), dict(assets_df.category.value_counts()).items())))
     return {'categories': categories, 'assets': len(assets_df.index)}
+
 
 @auth.requires_login()
 def index():
