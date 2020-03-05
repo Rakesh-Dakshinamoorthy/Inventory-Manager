@@ -1,5 +1,6 @@
 # import any files needed for development
 import pandas as pd
+from time import sleep
 from gluon.html import BUTTON
 from helpers import UsersDB, AssetDB
 
@@ -118,13 +119,28 @@ def users():
     db.users.id.readable = False
     db.users.user_data.readable = False
     form = permission()
+
     buttons = [lambda row: A("Assign Permission", _href='#permission', _class="btn btn-default btn-secondary",
-                             **{'_data-rowid': row.user_name, '_data-toggle': "modal"})]
+                             **{'_data-rowid': row.user_name, '_data-toggle': "modal"}),
+               lambda row: A("Delete", _class="btn btn-default btn-secondary",
+                             callback=URL('project', 'delete_user', args=[row.id]))]
+
     grid = SQLFORM.grid(db.users, searchable=True, csv=False, editable=False, deletable=False, details=False,
                         create=False, maxtextlength=50, links=buttons)
     for _ in grid.elements(_class='row_buttons'):
-        _.attributes['_style'] = 'width:20px'
+        _.attributes['_style'] = 'width:280px'
     return locals()
+
+
+def delete_user():
+    row_id = request.args[0]
+    user = db(db.users.id == row_id).select().first()
+    if db(db.asset.assigned_to == user).select():
+        session.flash = 'Cannot delete this member. Assets are tagged to the member'
+    else:
+        db(db.auth_user.id == user.user_data.id).delete()
+        db.commit()
+    redirect(URL('project', 'users'), client_side=True)
 
 
 def permission():

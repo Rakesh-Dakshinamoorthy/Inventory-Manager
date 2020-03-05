@@ -29,7 +29,6 @@ def add_category():
     form = SQLFORM.factory(db.asset_category)
     if form.process().accepted:
         db.asset_category.insert(**form.vars)
-        db.commit
         response.flash = "Asset category is added"
         redirect(URL('asset', 'category.html'), client_side=True)
     return form
@@ -87,7 +86,6 @@ def add():
     if form.process().accepted:
         user = db(db.users.user_data == auth.user).select().first()
         db.asset.insert(**form.vars, **{'assigned_to': user})
-        db.commit
         response.flash = "Asset is added"
         redirect(URL('asset', 'view.html'), client_side=True)
     return form
@@ -101,8 +99,15 @@ def change_assignee():
     assign_to_form = SQLFORM.factory(Field('Asset'), Field('assigned_to',
                                                            requires=IS_IN_SET(request.vars.users)))
     if assign_to_form.process().accepted:
-        assigned_to = db(db.users.user_name == assign_to_form.vars.assigned_to).select().first()
-        db(db.asset.asset_id == assign_to_form.vars.Asset).update(assigned_to=assigned_to)
+        user = db(db.users.user_data == auth.user).select().first()
+        asset = db(db.asset.asset_id == assign_to_form.vars.Asset).select().first()
+        was_assigned_to = asset.assigned_to
+        going_to_be_assigned = db(db.users.user_name == assign_to_form.vars.assigned_to).select().first()
+        db(db.asset.asset_id == assign_to_form.vars.Asset).update(assigned_to=going_to_be_assigned)
+        db.asset_history.insert(asset_id=asset.id, asset_operation='changed assignee',
+                                information=str({"from":was_assigned_to.user_name,
+                                                 "to": going_to_be_assigned.user_name}),
+                                user_signature=user)
         redirect(URL('asset', 'view.html'), client_side=True)
     return assign_to_form
 

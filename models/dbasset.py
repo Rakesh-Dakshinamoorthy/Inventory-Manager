@@ -53,7 +53,7 @@ def add_user(id):
 def add_asset(id):
     user = db(db.users.user_data == auth.user).select().first()
     asset = db(db.asset.id == id).select().first()
-    db.asset_history.insert(asset_id="{}:{}".format(asset.id, asset.name), asset_operation='created',
+    db.asset_history.insert(asset_id="{}".format(asset.id), asset_operation='created',
                             information='Asset is newly added', user_signature=user.user_name)
 
 
