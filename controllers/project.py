@@ -5,6 +5,25 @@ from gluon.html import BUTTON
 from helpers import UsersDB, AssetDB
 
 
+def manager_button(row):
+    return A("Assign Manager", _class="button btn btn-secondary", _href="#assignmanager",
+             **{'_data-toggle': "modal", '_data-rowid': row.team_name})
+
+
+def lead_button(row):
+    return A("Assign Lead", _class="button btn btn-secondary", _href="#assignlead",
+             **{'_data-toggle': "modal", '_data-rowid': row.team_name})
+
+
+def member_button(row):
+    return A("Assign Member", _class="button btn btn-secondary", _href="#assignmember",
+             **{'_data-toggle': "modal", '_data-rowid': row.team_name})
+
+
+def members_link(row):
+    return A("Members", _href=URL('project', 'members', args=[row.id]))
+
+
 @auth.requires_login()
 def team():
     # Grid to display the teams
@@ -15,35 +34,30 @@ def team():
     leads = list(map(lambda each: each.user_name, users.leads()))
     members = list(map(lambda each: each.user_name, users.get_users()))
 
-    def manager_button(row):
-        return A("Assign Manager", _class="button btn btn-secondary", _href="#assignmanager",
-                 **{'_data-toggle': "modal", '_data-rowid': row.team_name})
-
-    def lead_button(row):
-        return A("Assign Lead", _class="button btn btn-secondary", _href="#assignlead",
-                 **{'_data-toggle': "modal", '_data-rowid': row.team_name})
-
-    def member_button(row):
-        return A("Assign Member", _class="button btn btn-secondary", _href="#assignmember",
-                 **{'_data-toggle': "modal", '_data-rowid': row.team_name})
 
     user = db(db.users.user_data == auth.user).select().first()
 
     if auth.has_membership(group_id=10):
-        buttons = [manager_button, lead_button, member_button]
+        buttons = [members_link, manager_button, lead_button, member_button]
         query = db.team
-        width = 'width:530px'
-        manager_btn = lead_btn = member_btn = delete = True
+        width = 'width:620px'
+        manager_btn = lead_btn = member_btn = True
+
+        def deletable(team):
+            members = list(map(lambda each: each.member_name.id, db(db.team_members.team_name == team).select()))
+            return False if db(db.asset.assigned_to.belongs(members)).select() else True
+        delete = deletable
+
     elif auth.has_membership(group_id=2):
-        width = 'width:300px'
+        width = 'width:400px'
         query = db(db.team.manager_name == user)
-        buttons = [lead_button, member_button]
+        buttons = [members_link, lead_button, member_button]
         lead_btn = member_btn = True
     elif auth.has_membership(group_id=3):
         query = db(db.team.lead_name == user)
-        width = 'width:300px'
-        buttons = [manager_button, member_button]
-        manager_button = member_btn = True
+        width = 'width:400px'
+        buttons = [members_link, manager_button, member_button]
+        manager_btn = member_btn = True
 
     grid = SQLFORM.grid(query, links=buttons, searchable=True, csv=False, editable=False, deletable=delete,
                         details=False, create=False)
@@ -154,6 +168,26 @@ def permission():
         redirect(URL('project', 'users.html'), client_side=True)
 
     return form
+
+
+def delete_member():
+    row_id = request.args[0]
+    db(db.team_members.id == row_id).delete()
+    redirect(URL('project', 'members', args=[request.args[1]]), client_side=True)
+
+
+@auth.requires_login()
+def members():
+    db.team_members.id.readable = db.team_members.team_name.readable = False
+    team_id = int(request.args[0])
+    team = db(db.team.id == team_id).select().first().team_name
+
+    buttons = [lambda row: A("Delete", _class="btn btn-default btn-secondary",
+                             callback=URL('project', 'delete_member', args=[row.id, team_id]))]
+
+    grid = SQLFORM.grid(db(db.team_members.team_name == team_id), searchable=False, csv=False, editable=False,
+                        deletable=False, details=False, create=False, user_signature=False, links=buttons)
+    return locals()
 
 
 @auth.requires_login()

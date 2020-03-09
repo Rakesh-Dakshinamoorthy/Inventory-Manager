@@ -1,4 +1,6 @@
 # Table for entering teams in the project
+from constants import asset_working_status, created, changed_assignee, changed_status
+
 auth = Auth(db)
 auth.settings.create_user_groups = None
 auth.settings.everybody_group_id = 11
@@ -32,16 +34,16 @@ db.define_table('asset',
                 Field('procurement_id', requires=IS_NOT_EMPTY()),
                 Field('assigned_to', db.users),
                 Field('remarks', 'string'),
-                Field('hardware_status', requires=IS_IN_SET(('Working', 'Not Working'))),
+                Field('hardware_status', requires=IS_IN_SET(asset_working_status)),
                 format="%(asset_id)s %(name)s")
 
 db.define_table('asset_history',
-                Field('asset_id'),
+                Field('asset_id', 'string'),
                 Field('asset_operation', 'string',
-                      requires=(IS_NOT_EMPTY(), IS_IN_SET('created', 'changed assignee', 'changed status'))),
+                      requires=(IS_NOT_EMPTY(), IS_IN_SET(created, changed_assignee, changed_status))),
                 Field('information', 'text', requires=IS_NOT_EMPTY()),
                 Field('occurred_time', 'datetime', default=request.now),
-                Field('user_signature'))
+                Field('user_signature', db.users))
 
 
 def add_user(id):
@@ -53,8 +55,8 @@ def add_user(id):
 def add_asset(id):
     user = db(db.users.user_data == auth.user).select().first()
     asset = db(db.asset.id == id).select().first()
-    db.asset_history.insert(asset_id="{}".format(asset.id), asset_operation='created',
-                            information='Asset is newly added', user_signature=user.user_name)
+    db.asset_history.insert(asset_id=asset.asset_id, asset_operation=created,
+                            information='Asset is newly added', user_signature=user)
 
 
 db.auth_user._after_insert.append(lambda f, i: add_user(i))

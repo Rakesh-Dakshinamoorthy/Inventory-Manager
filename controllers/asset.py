@@ -1,6 +1,33 @@
 # import any files needed for development
 from web_page_data import AboutPage
 from helpers import UsersDB
+from constants import asset_working_status, changed_status
+
+
+def change_assignee_button(row):
+    return A("Change Assignee", _class="button btn btn-secondary", _href="#changeassignee",
+             **{'_data-toggle': "modal", '_data-rowid': row.asset_id})
+
+
+def view_history_link(row):
+    return A("History", _href=URL('asset', 'history', args=[row.asset_id]))
+
+
+def change_status_button(row):
+    return A("Change Status", _class="button btn btn-secondary",
+             callback=URL('asset', 'change_status', args=[row.id]))
+
+
+def change_status():
+    asset = db(db.asset.id == request.args[0]).select().first()
+    user = db(db.users.user_data == auth.user).select().first()
+    new_status = asset_working_status[1] if asset.hardware_status == asset_working_status[0] else asset_working_status[
+        0]
+    db(db.asset.id == request.args[0]).update(hardware_status=new_status)
+    db.asset_history.insert(asset_id=asset.asset_id, asset_operation=changed_status,
+                            information='Asset hardware status changed to {}'.format(new_status), user_signature=user)
+    redirect(URL('asset', 'view'), client_side=True)
+
 
 
 @auth.requires_login()
@@ -44,10 +71,6 @@ def view():
     add_button = BUTTON("Add Asset", _type="button", _class="btn btn-primary",
                         **{'_data-toggle': "modal", '_data-target': "#addasset"})
 
-    def change_assignee(row):
-        return A("Change Assignee", _class="button btn btn-secondary", _href="#changeassignee",
-                 **{'_data-toggle': "modal", '_data-rowid': row.asset_id})
-
     user = db(db.users.user_data == auth.user).select().first()
 
     if auth.has_membership(group_id=10):
@@ -73,8 +96,8 @@ def view():
     else:
         query = db(db.asset.assigned_to == user)
 
-    grid = SQLFORM.grid(query, links=[change_assignee], searchable=True, csv=False, editable=False, deletable=delete,
-                        details=False, create=False)
+    grid = SQLFORM.grid(query, links=[view_history_link, change_assignee_button, change_status_button],
+                        searchable=True, csv=False, editable=False, deletable=delete, details=False, create=False)
     grid.elements(_class='web2py_console  ')[0].components[0] = add_button
 
     return locals()
@@ -104,7 +127,7 @@ def change_assignee():
         was_assigned_to = asset.assigned_to
         going_to_be_assigned = db(db.users.user_name == assign_to_form.vars.assigned_to).select().first()
         db(db.asset.asset_id == assign_to_form.vars.Asset).update(assigned_to=going_to_be_assigned)
-        db.asset_history.insert(asset_id=asset.id, asset_operation='changed assignee',
+        db.asset_history.insert(asset_id=asset.asset_id, asset_operation='changed assignee',
                                 information=str({"from":was_assigned_to.user_name,
                                                  "to": going_to_be_assigned.user_name}),
                                 user_signature=user)
@@ -115,3 +138,12 @@ def change_assignee():
 @auth.requires_login()
 def index():
     redirect(URL('asset', 'home'))
+
+
+@auth.requires_login()
+def history():
+    db.asset_history.id.readable = db.asset_history.asset_id.readable = False
+    asset_id = request.args[0]
+    grid = SQLFORM.grid(db(db.asset_history.asset_id == asset_id), searchable=False, csv=False, editable=False,
+                        deletable=False, details=False, create=False, user_signature=False, maxtextlengths={'Information': 100}, maxtextlength=100)
+    return locals()
