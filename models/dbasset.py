@@ -1,5 +1,5 @@
 # Table for entering teams in the project
-from constants import asset_working_status, created, changed_assignee, changed_status
+from constants import asset_working_status, created, changed_assignee, changed_status, audited
 
 auth = Auth(db)
 auth.settings.create_user_groups = None
@@ -35,12 +35,13 @@ db.define_table('asset',
                 Field('assigned_to', db.users),
                 Field('remarks', 'string'),
                 Field('hardware_status', requires=IS_IN_SET(asset_working_status)),
+                Field('last_audited_on', 'datetime', default=None),
                 format="%(asset_id)s %(name)s")
 
 db.define_table('asset_history',
                 Field('asset_id', 'string'),
                 Field('asset_operation', 'string',
-                      requires=(IS_NOT_EMPTY(), IS_IN_SET(created, changed_assignee, changed_status))),
+                      requires=(IS_NOT_EMPTY(), IS_IN_SET(created, changed_assignee, changed_status, audited))),
                 Field('information', 'text', requires=IS_NOT_EMPTY()),
                 Field('occurred_time', 'datetime', default=request.now),
                 Field('user_signature', db.users))

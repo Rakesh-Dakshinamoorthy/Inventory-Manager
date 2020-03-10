@@ -1,7 +1,7 @@
 # import any files needed for development
 from web_page_data import AboutPage
 from helpers import UsersDB
-from constants import asset_working_status, changed_status
+from constants import asset_working_status, changed_status, audited
 
 
 def change_assignee_button(row):
@@ -63,7 +63,7 @@ def add_category():
 
 @auth.requires_login()
 def view():
-    db.asset.id.readable = False
+    db.asset.id.readable = db.asset.last_audited_on.readable = False
     database = UsersDB(db)
     users = list(database.user_name_map().keys())
     form = add()
@@ -114,8 +114,29 @@ def add():
     return form
 
 
-def update_asset():
-    pass
+@auth.requires_membership(group_id=10)
+def view_audit():
+    db.asset.id.readable = db.asset.remarks.readable = False
+    button = [lambda row: A("Audit", _class="button btn btn-secondary", _href="#audit",
+                            **{'_data-toggle': "modal", '_data-rowid': row.asset_id})]
+    form = SQLFORM.factory(Field('Asset'), Field('audited_on', 'datetime', requires=IS_NOT_EMPTY()))
+    grid = SQLFORM.grid(db.asset, searchable=True, csv=False, editable=False, deletable=False, details=False,
+                        create=False, links=button)
+    return locals()
+
+
+def audit():
+    form = SQLFORM.factory(Field('Asset'), Field('audited_on', 'datetime', requires=IS_NOT_EMPTY()))
+    if form.process().accepted:
+        user = db(db.users.user_data == auth.user).select().first()
+        db(db.asset.asset_id == form.vars.Asset).update(last_audited_on=form.vars.audited_on)
+        db.asset_history.insert(asset_id=form.vars.Asset, asset_operation=audited,
+                                information="audited on: {}".format(
+                                    form.vars.audited_on),
+                                user_signature=user)
+        redirect(URL('asset', 'view_audit.html'), client_side=True)
+    return form
+
 
 
 def change_assignee():
