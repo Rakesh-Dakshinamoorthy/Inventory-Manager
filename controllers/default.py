@@ -56,3 +56,25 @@ def download():
     http://..../[app]/default/download/[filename]
     """
     return response.download(request, db)
+
+
+def change_password():
+    form = SQLFORM.factory(
+        Field('email', 'string',
+              label='Email Id',
+              required=True,
+              requires=[IS_IN_DB(db, 'auth_user.email',
+                                 error_message="Invalid email")]),
+        Field('new_password', 'password',
+              label='New password',
+              requires=db.auth_user.password.requires),
+        Field('new_password2', 'password',
+              label='Verify Password',
+              requires=[IS_EXPR('value==%s' % repr(request.vars.new_password),
+                                "Password fields don't match")]),
+        submit_button='Change Password')
+    if form.process().accepted:
+        s = db(db.auth_user.email == form.vars.email)
+        s.update(password=str(form.vars.new_password))
+        redirect(URL('default', 'index'))
+    return locals()

@@ -35,9 +35,9 @@
   <body>
     <div class="w2p_flash alert alert-dismissable">{{=response.flash or ''}}</div>
     <!-- Navbar ======================================= -->
+    {{if auth.is_logged_in():}}
     <nav class="navbar navbar-light navbar-expand-md bg-faded bg-dark navbar-dark justify-content-center">
-       <a href="http://web2py.com" class="navbar-brand d-flex w-50
-       mr-auto">Inventory Manager</a>
+        {{=A('Inventory Manager', _class="navbar-brand d-flex w-50 mr-auto", callback=URL('asset', 'home'))}}
        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavDropdown" aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
          <span class="navbar-toggler-icon"></span>
        </button>
@@ -89,7 +89,7 @@
         {{pass}}
       </div>
     </nav>
-
+    {{pass}}
     <!-- Masthead ===================================== -->
     {{block header}}
     {{end}}
@@ -99,6 +99,7 @@
       {{include}}
       {{=response.toolbar() if response.show_toolbar else ''}}
     </div>
+    {{if auth.is_logged_in():}}
     {{block footer}} <!-- this is default footer -->
     <footer class="footer container-fluid">
       <div class="row">
@@ -112,6 +113,7 @@
       </div>
     </footer>
     {{end}}
+    {{pass}}
     <!-- The javascript =============================== -->
     <script src="{{=URL('static','js/bootstrap.bundle.min.js')}}"></script>
     <script src="{{=URL('static','js/web2py-bootstrap4.js')}}"></script>

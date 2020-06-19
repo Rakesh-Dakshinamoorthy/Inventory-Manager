@@ -1,7 +1,7 @@
 # import any files needed for development
 
 
-class HomePageData(object):
+class AboutPage(object):
 
     def __init__(self):
         pass
