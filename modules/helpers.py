@@ -5,47 +5,49 @@ class UsersDB(object):
     """
     This class has all the repeatedly used user operation
     """
-    manager_id = 2
-    lead_id = 3
-    owner_id = 10
-    tester_id = 11
+    manager_group_id = 2
+    lead_group_id = 3
+    admin_group_id = 1
+    user_group_id = 4
 
     def __init__(self, db):
         self.db = db
 
     def _get_users(self, group_id):
         auth_membership = self.db.auth_membership
-        users = self.db.users
-        user_ids = list(map(lambda each: each.user_id, self.db(auth_membership.group_id == group_id).select()))
-        return self.db(users.user_data.belongs(user_ids)).select()
+        users = self.db.auth_user
+        user_ids = list(
+            map(lambda each: each.user_id,
+                self.db(auth_membership.group_id == group_id).select())
+        )
+        return self.db(users.id.belongs(user_ids)).select()
 
     def managers(self):
-        return self._get_users(self.manager_id)
+        return self._get_users(self.manager_group_id)
 
     def leads(self):
-        return self._get_users(self.lead_id)
+        return self._get_users(self.lead_group_id)
 
     def owners(self):
-        return self._get_users(self.owner_id)
+        return self._get_users(self.admin_group_id)
 
     def testers(self):
-        return self._get_users(self.tester_id)
+        return self._get_users(self.user_group_id)
 
     def get_users(self):
-        users = self.db.users
+        users = self.db.auth_user
         return self.db(users.id > 0).select()
 
     def user_name_map(self):
-        return dict(list(map(lambda user:(user.user_name, user), self.get_users())))
+        return dict(list(
+            map(lambda user: (user.user_name, user), self.get_users())
+        ))
 
     def user_id_map(self):
-        return dict(list(map(lambda item: (item[1].id, item[1]), self.user_name_map().items())))
-
-    def get_newly_added_user(self):
-        table_auth_user = self.db.auth_user
-        auth_users = self.db(table_auth_user.id > 0).select()
-        users_exist = list(map(lambda user: user.user_data.id, self.get_users()))
-        return list(filter(lambda user: user.id not in users_exist, auth_users))
+        return dict(list(
+            map(lambda item: (item[1].id, item[1]),
+                self.user_name_map().items())
+        ))
 
     def user_id(self, name):
         return self.user_name_map().get(name).id
@@ -58,9 +60,6 @@ class UsersDB(object):
             return self.user_id_map().get(user_info)
         elif isinstance(user_info, str):
             return self.user_name_map().get(user_info)
-        else:
-            users = self.db.users
-            return self.db(users.user_data == user_info).select().first()
 
 
 class TeamDB(UsersDB):
@@ -130,7 +129,9 @@ class AssetDB(AssetCategoryDB,  MembersDB):
 
     def user_assets(self, user_id):
         assets = self.db.asset
-        return self.db(assets.assigned_to == self.user_id_map().get(user_id)).select()
+        return self.db(
+            assets.assigned_to == self.user_id_map().get(user_id)
+        ).select()
 
     def user_assets_df(self, user_id):
         return pd.DataFrame(self.user_assets(user_id).as_list())

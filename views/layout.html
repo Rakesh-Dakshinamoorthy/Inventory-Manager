@@ -65,22 +65,13 @@
             {{pass}}
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              {{if auth.user:}}{{=auth.user.first_name}}{{else:}}LOGIN{{pass}}
+              {{if auth.user:}}{{=auth.user.user_name}}{{else:}}LOGIN{{pass}}
             </a>
             <div class="dropdown-menu dropdown-menu-right">
               {{if auth.user:}}
               <a class="dropdown-item" href="{{=URL('default','user/profile')}}">{{=T('Profile')}}</a>
-              {{if 'change_password' not in auth.settings.actions_disabled:}}
               <a class="dropdown-item" href="{{=URL('default','user/change_password')}}">{{=T('Change Password')}}</a>
-              {{pass}}
               <a class="dropdown-item" href="{{=URL('default','user/logout')}}">{{=T('Logout')}}</a>
-              {{else:}}
-              <a class="dropdown-item" href="{{=URL('default','user/login')}}">{{=T('Login')}}</a>
-              {{if 'register' not in auth.settings.actions_disabled:}}
-              <a class="dropdown-item" href="{{=URL('default','user/register')}}">{{=T('Sign up')}}</a>
-              {{pass}}
-              {{if 'retrieve_password' not in auth.settings.actions_disabled:}}
-              <a class="dropdown-item" href="{{=URL('default','user/retrieve_password')}}">{{=T('Lost Password')}}</a>
               {{pass}}
               {{pass}}
             </div>
@@ -104,7 +95,11 @@
     <footer class="footer container-fluid">
       <div class="row">
         <div class="col-md-12">
-          <div class="copyright pull-left">{{=response.footer}}</div>
+          <div class="copyright pull-left">
+              <h7>This tool is developed using web2py framework. Anyone having any ideas please contact </h7>
+              <h7 style="color: #007bff">{{=response.footer}}</h7>
+              <h7> for implementing it.</h7>
+          </div>
           <div id="poweredBy" class="pull-right">
             {{=T('Powered by')}}
             <a href="https://www.wipro.com">Wipro Ltd</a>

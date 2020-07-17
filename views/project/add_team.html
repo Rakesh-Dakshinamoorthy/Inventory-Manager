@@ -1,0 +1,16 @@
+<div class="modal fade" id="addteam" tabindex="-1" role="dialog"
+         aria-labelledby="addteamTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addteamTitle">Add Team</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        {{=LOAD('project', 'add_team.load', ajax=True, ajax_trap=True, user_signature=True)}}
+      </div>
+    </div>
+  </div>
+</div>
