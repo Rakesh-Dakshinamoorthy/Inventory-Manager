@@ -41,7 +41,7 @@ db.define_table('asset',
                 Field('hardware_status',
                       requires=IS_IN_SET(asset_working_status)),
                 Field('last_audited_on', 'datetime', default=None),
-                Field('transferred_to', db.auth_user, default=None),
+                Field('transferring_to', db.auth_user, default=None),
                 format="%(asset_id)s %(name)s")
 
 db.define_table('asset_history',

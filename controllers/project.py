@@ -2,40 +2,15 @@
 from gluon.html import BUTTON
 from gluon.contrib.appconfig import AppConfig
 from helpers import UsersDB, AssetDB
+from ui_elements import *
 
 app_config = AppConfig(reload=False)
 default_password = app_config.get('password.default_password')
 
 
-def manager_button(row):
-    return A(
-        "Assign Manager",
-        _class="button btn btn-secondary",
-        _href="#assignmanager",
-        **{'_data-toggle': "modal", '_data-rowid': row.team_name}
-    )
-
-
-def lead_button(row):
-    return A(
-        "Assign Lead",
-        _class="button btn btn-secondary",
-        _href="#assignlead",
-        **{'_data-toggle': "modal", '_data-rowid': row.team_name}
-    )
-
-
-def member_button(row):
-    return A(
-        "Assign Member",
-        _class="button btn btn-secondary",
-        _href="#assignmember",
-        **{'_data-toggle': "modal", '_data-rowid': row.team_name}
-    )
-
-
-def members_link(row):
-    return A("Members", _href=URL('project', 'members', args=[row.id]))
+@auth.requires_login()
+def index():
+    redirect(URL('project', 'team'))
 
 
 def is_team_deletable(team_name):
@@ -81,11 +56,8 @@ def team():
         query, links=buttons, searchable=True, csv=False, editable=False,
         deletable=delete, details=False, create=False
     )
-    add_button = BUTTON(
-        "Add Team", _type="button", _class="btn btn-primary",
-        **{'_data-toggle': "modal", '_data-target': "#addteam"}
-    )
-    grid.elements(_class='web2py_console  ')[0].components[0] = add_button
+
+    grid.elements(_class='web2py_console  ')[0].components[0] = btn_add_team
     for _ in grid.elements(_class='row_buttons'):
         _.attributes['_style'] = width
     return locals()
@@ -182,27 +154,13 @@ def users():
         db.auth_user.registration_id.readable = False
     permission_form = permission()
     add_user_form = add_user()
-    add_button = BUTTON(
-        'Add User', _type='button', _class='btn btn-primary',
-        **{'_data-toggle': 'modal', '_data-target': '#add_user'}
-    )
-
-    buttons = [
-        lambda row: A("Assign Permission", _href='#permission',
-                      _class="btn btn-default btn-secondary",
-                      **{'_data-rowid': row.email, '_data-toggle': "modal"}
-                      ),
-        lambda row: A("Delete", _class="btn btn-default btn-secondary",
-                      callback=URL('project', 'delete_user', args=[row.id])
-                      )
-    ]
 
     grid = SQLFORM.grid(
         db.auth_user, searchable=True, csv=False, editable=False,
         deletable=False, details=False, create=False, maxtextlength=50,
-        links=buttons
+        links=[assign_permission_button, delete_user_button]
     )
-    grid.elements(_class='web2py_console  ')[0].components[0] = add_button
+    grid.elements(_class='web2py_console  ')[0].components[0] = btn_add_user
     for _ in grid.elements(_class='row_buttons'):
         _.attributes['_style'] = 'width:280px'
     return locals()
@@ -300,22 +258,6 @@ def members():
     return locals()
 
 
-# @auth.requires_login()
-# def dashboard():
-#     user_id = int(request.args[0])
-#     users = UsersDB(db)
-#     membership = db(
-#         db.auth_membership.user_id == users.user_id_map()[user_id].user_data.id
-#     ).select().first().group_id.id
-#     dashboard_data = {2: _get_manager_dashboard,
-#                       3: _get_lead_dashboard,
-#                       11: _get_tester_dashboard,
-#                       10: _get_owner_dashboard}
-#     return dashboard_data[membership](user)
-#     return _get_tester_dashboard(user_id)
-#     pass
-
-
 def member():
     user_id = int(request.args[0])
     assets = AssetDB(db)
@@ -331,18 +273,3 @@ def member():
         deletable=False, details=False, create=False
     )
     return locals()
-
-
-# def _get_tester_dashboard(user_id):
-#     assets = AssetDB(db)
-#     assets_df = assets.user_assets_df(user_id)
-#     categories = dict(list(
-#         map(lambda category: (assets.category_name(category[0]), category[1]),
-#             dict(assets_df.category.value_counts()).items())
-#     ))
-#     return {'categories': categories, 'assets': len(assets_df.index)}
-
-
-@auth.requires_login()
-def index():
-    redirect(URL('project', 'team'))

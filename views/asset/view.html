@@ -1,11 +1,27 @@
 {{extend 'layout.html'}}
 <div class="container col-md-9">
+    <div class="row">
+        <div class="container-fluid">
+            <div class="card-deck">
+                {{for sub_page in card_properties:}}
+                    <div class="{{=sub_page["card_style"]}}">
+                        <div class="card-body">
+                            <h1>{{=len(sub_page["count"].select())}}</h1>
+                            <br>
+                            <h4>{{=sub_page["header"]}}</h4>
+                        </div>
+                        <div class="card-footer">
+                            <a href="{{=sub_page["url"]}}" class="card-body" style="color: white">More info <i class="fa fa-arrow-circle-right"></i></a>
+                        </div>
+                    </div>
+                {{pass}}
+            </div>
+        </div>
+    </div>
+    {{if request.args(0) == "all":}}
     {{include 'asset/add_asset.html'}}
     {{include 'asset/change_assignee.html'}}
-    {{if shared_asset_count:}}
-    <H1>Asset with pending</H1>
-    {{=shared_asset_grid}}
-    {{pass}}<br><br><br><br>
-    <H1>Assets</H1>
+    {{pass}}
+    <H1 style="font-family: Calibri; font-weight: bolder; padding-bottom: 10px">Assets</H1>
     {{=grid}}
 </div>

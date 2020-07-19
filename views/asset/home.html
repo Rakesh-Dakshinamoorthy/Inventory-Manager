@@ -1,17 +1,20 @@
 {{extend 'layout.html'}}
-<h1>Inventory Management Tool</h1>
-<p>{{=body}}</p>
-<div class="container">
+<h1 style="font-family: Calibri; font-weight: bolder; padding-bottom: 10px">Inventory Management Tool</h1>
+<p style="font-size: large">{{=body}}</p>
+<div class="container col-md-7 ">
     <div class="row">
-        <div class="card-deck">
-            {{for users in user:}}
-                <div class="card text-white bg-dark mb-3" style="max-width: 18rem;">
-                    <div class="card-header">{{=users.capitalize()}}</div>
-                    <div class="card-body">
-                        <p class="card-text">{{=user_manual[users]}}</p>
+        <div class="container-fluid">
+            <div class="card-deck">
+                {{for users in user:}}
+                    <div class="card text-white bg-info mb-3" style="max-width: 18rem;">
+                        <div class="card-header"><h3>{{=users.capitalize()}}</h3></div>
+                        <div class="card-body">
+                            <p class="card-text"><h5>{{=user_manual[users]}}</h5></p>
+                        </div>
                     </div>
-                </div>
-            {{pass}}
+                {{pass}}
+            </div>
         </div>
+
     </div>
 </div>

@@ -10,28 +10,43 @@ response.menu = [
 ]
 
 if auth.has_membership(role="Leads"):
-    response.menu.extend([(T('Asset'), False, URL('asset', 'view'), []),
-                          (T('Project'), False, URL('project', 'index'), [])])
-elif auth.has_membership(role="Managers") :
-    response.menu.append((T('Asset'), False, '#',
-                          [(T('View'), False, URL('asset', 'view'), []),
-                           (T('Category'), False, URL('asset', 'category'), [])]))
-    response.menu.append((T('Project'), False, '#',
-                          [(T('Team'), False, URL('project', 'team'), []),
-                           (T('Users'), False, URL('project', 'users'), [])]))
+    response.menu.extend([
+        (T('Asset'), False, URL('asset', 'view', args=['all']), []),
+        (T('Project'), False, URL('project', 'index'), [])
+    ])
+elif auth.has_membership(role="Managers"):
+    response.menu.append(
+        (T('Asset'), False, '#',
+         [(T('View'), False, URL('asset', 'view', args=['all']), []),
+          (T('Category'), False, URL('asset', 'category'), [])
+          ]
+         )
+    )
+    response.menu.append(
+        (T('Project'), False, '#',
+         [(T('Team'), False, URL('project', 'team'), []),
+          (T('Users'), False, URL('project', 'users'), [])]
+         )
+    )
 elif auth.has_membership(role="Administrator"):
-    response.menu.append((T('Asset'), False, '#',
-                          [(T('View'), False, URL('asset', 'view'), []),
-                           (T('Category'), False, URL('asset', 'category'), []),
-                           (T('Audit'), False, URL('asset', 'view_audit'), []),
-                           (T('History'), False, URL('asset',
-                                                     'view_asset_history'))
-                           ]))
-    response.menu.append((T('Project'), False, '#',
-                          [(T('Team'), False, URL('project', 'team'), []),
-                           (T('Users'), False, URL('project', 'users'), [])]))
-elif auth.has_membership(role="users"):
-    response.menu.append((T('Asset'), False, URL('asset', 'view'), []))
+    response.menu.append(
+        (T('Asset'), False, '#',
+         [(T('View'), False, URL('asset', 'view', args=['all']), []),
+          (T('Category'), False, URL('asset', 'category'), []),
+          (T('Audit'), False, URL('asset', 'view_audit'), []),
+          (T('History'), False, URL('asset', 'view_asset_history'))]
+         )
+    )
+    response.menu.append(
+        (T('Project'), False, '#',
+         [(T('Team'), False, URL('project', 'team'), []),
+          (T('Users'), False, URL('project', 'users'), [])]
+         )
+    )
+elif auth.has_membership(role="Users"):
+    response.menu.append(
+        (T('Asset'), False, URL('asset', 'view', args=['all']), [])
+    )
 
 admin_ids = list(map(
     lambda _: _.id, db(db.auth_membership.group_id == 1).select()
