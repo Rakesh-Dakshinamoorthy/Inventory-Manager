@@ -34,11 +34,3 @@ elif auth.has_membership(role="Users"):
     response.menu.append(
         (T('Asset'), False, URL('asset', 'view', args=['all']), [])
     )
-
-admin_ids = list(map(
-    lambda _: _.id, db(db.auth_membership.group_id == 1).select()
-))
-admin_emails = list(map(
-    lambda _: _.email, db(db.auth_user.id.belongs(admin_ids)).select()
-))
-response.footer = " ".join(admin_emails)

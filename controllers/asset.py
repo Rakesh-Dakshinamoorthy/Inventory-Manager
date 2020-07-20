@@ -14,7 +14,15 @@ def index():
 @auth.requires_login()
 def home():
     response.flash = T('Welcome to Inventory Manager')
-    return AboutPage().body
+    body = AboutPage().body
+    admin_ids = list(map(
+        lambda _: _.id, db(db.auth_membership.group_id == 1).select()
+    ))
+    admin_emails = list(map(
+        lambda _: _.email, db(db.auth_user.id.belongs(admin_ids)).select()
+    ))
+    body.update({"footer": " ".join(admin_emails)})
+    return body
 
 
 def cancel_assignee():
