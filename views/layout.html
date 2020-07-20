@@ -39,11 +39,12 @@
     <div class="wrapper">
         <!-- Sidebar -->
         <nav id="sidebar" class="bg-dark">
-            <div class="sidebar-header bg-primary">
+            <div class="sidebar-header" style="background-color: #0e0e0e">
                 <h2><a class="navbar-brand d-flex w-50 mr-auto" style="color: white; font-size: x-large; font-weight: bolder" href="{{=URL('default', 'index')}}">Inventory Manager</a></h2>
             </div>
             <div class="sidebar-header bg-warning">
-                <h4>{{=auth.user.user_name.capitalize()}}</h4>
+                <h4 style="color: grey">Welcome,</h4>
+                <h5>{{=auth.user.user_name}}</h5>
             </div>
             <ul class="list-unstyled components">
                 {{for item in response.menu:}}
@@ -64,6 +65,7 @@
         </nav>
         <!-- Page Content -->
         <div id="content">
+            <div class="w2p_flash alert">{{=response.flash or ''}}</div>
             {{include}}
         </div>
     </div>
