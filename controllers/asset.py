@@ -184,7 +184,7 @@ def view():
                         **__view_grids_templates(request.args[0].lower()),
                         paginate=20)
 
-    if auth.has_membership(group_id=1) and request.args[0].lower() == 'all':
+    if request.args[0].lower() == 'all':
         grid.elements(_class='web2py_console  ')[0].components[0] = \
             btn_add_asset
 
@@ -254,7 +254,7 @@ def audit():
             information='audited on: {}'.format(form.vars.audited_on),
             user_signature=auth.user
         )
-        redirect(URL('asset', 'view_audit'), client_side=True)
+        redirect(URL('asset', 'view_audit.html'), client_side=True)
     return form
 
 
