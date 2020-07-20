@@ -1,10 +1,10 @@
 {{extend 'layout.html'}}
-<div class="container col-md-9" style="padding-top: 25px">
+<div class="container col-md-9" style="margin-top: 5%">
     <div class="row">
         <div class="container-fluid">
             <div class="card-deck">
                 {{for sub_page in card_properties:}}
-                    <div class="{{=sub_page["card_style"]}}">
+                    <div class="{{=sub_page["card_style"]}}" style="border-radius:15px">
                         <div class="card-body">
                             <h1>{{=len(sub_page["count"].select())}}</h1>
                             <br>

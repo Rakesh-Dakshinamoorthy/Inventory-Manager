@@ -1,12 +1,10 @@
 {{extend 'layout.html'}}
-<body style="background-size: cover" background={{=URL('static', 'images', args='background.jpg')}}>
 <div class="row" style="vertical-align: middle; padding-top: 12%">
-    <div id="web2py_user_form" class="col-lg-4" style="color:ghostwhite; background-color:transparent; margin: 0 auto 5px auto; box-shadow: 0 0 5px #a1a1a1; border-radius:5px;padding: 20px">
+    <div id="web2py_user_form" class="col-lg-4" style="color:{{="#0062cc" if auth.is_logged_in() else "white"}}; background-color:transparent; margin: 0 auto 5px auto; box-shadow: 0 0 5px #a1a1a1; border-radius:10px;padding: 20px">
         <h2>
         {{=T('Log In') if request.args(0) == 'login' else T(request.args(0).replace('_',' ').title())}}
         </h2>
         {{=form}}
-        {{pass}}
         {{if request.args(0)=='login':}}
         <a href="{{=URL('default', 'change_password')}}" style="color: white">Change Password</a>
         <br>
@@ -18,8 +16,6 @@
         </div>
     </div>
 </div>
-</body>
-
 {{block page_js}}
 <script>
     jQuery("#web2py_user_form input:visible:enabled:first").focus();
