@@ -310,6 +310,6 @@ def view_asset_history():
         db.asset_history, searchable=True, csv=True,
         editable=False, deletable=False, details=False, create=False,
         user_signature=False, maxtextlengths={'Information': 100},
-        maxtextlength=100
+        maxtextlength=100, paginate=50
     )
     return {"grid": grid}
