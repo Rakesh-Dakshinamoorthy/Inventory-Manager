@@ -40,13 +40,13 @@
         <!-- Sidebar -->
         <nav id="sidebar" class="bg-dark">
             <div class="sidebar-header" style="background-color: #0e0e0e; padding: 10px">
-                <img style='height: 100%; width: 100%; object-fit: contain;' src={{=URL('static', 'images', args='logo_transparent_custom.png')}}>
+                <img style='height: 100%; width: 100%; object-fit: contain;' src={{=URL('static', 'images', args='logo.png')}}>
             </div>
             <div class="sidebar-header bg-warning" style="padding: 10px">
                 <h4 style="color: grey">Welcome,</h4>
                 <h5>{{=auth.user.user_name}}</h5>
             </div>
-            <ul class="list-unstyled components">
+            <ul class="list-unstyled components" style="padding-top: 0px">
                 {{for item in response.menu:}}
                 <li>
                     <a href="{{=item[2]}}">{{=item[0]}}</a>
@@ -70,7 +70,7 @@
         </div>
     </div>
     {{else:}}
-    <body style="background-size: cover" background={{=URL('static', 'images', args='background.jpg')}}>
+    <body style="background: #9053c7; background: -webkit-linear-gradient(-135deg, #c850c0, #4158d0); background: -o-linear-gradient(-135deg, #c850c0, #4158d0); background: -moz-linear-gradient(-135deg, #c850c0, #4158d0);">
         {{include}}
     </body>
     {{pass}}

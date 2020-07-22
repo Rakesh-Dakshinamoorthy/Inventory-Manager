@@ -1,18 +1,31 @@
 {{extend 'layout.html'}}
-<div class="row" style="vertical-align: middle; padding-top: 12%">
-    <div id="web2py_user_form" class="col-lg-4" style="color:{{="#0062cc" if auth.is_logged_in() else "white"}}; background-color:transparent; margin: 0 auto 5px auto; box-shadow: 0 0 5px #a1a1a1; border-radius:10px;padding: 20px">
-        <h2>
-        {{=T('Log In') if request.args(0) == 'login' else T(request.args(0).replace('_',' ').title())}}
-        </h2>
-        {{=form}}
-        {{if request.args(0)=='login':}}
-        <a href="{{=URL('default', 'change_password')}}" style="color: white">Change Password</a>
-        <br>
-        <br>
-        {{pass}}
-        <div class="row">
-            <div class="col-sm-5"><img src={{=URL('static', 'images', args='wipro.png')}} width="25%"></div>
-            <div class="col-sm-7"style="padding-left: 40%"><img src={{=URL('static', 'images', args='ford.png')}} width="100%"></div>
+<style>
+  .img-container {
+    text-align: center;
+  }
+</style>
+<div class="row" style="vertical-align: middle; padding-top: 5%">
+    <div id="web2py_user_form" class="col-lg-6" style="color:black; background-color:white; margin: 0 auto 5px auto; box-shadow: 0 0 5px #a1a1a1; border-radius:10px">
+        <div class="row" style="padding: 0%">
+            <div class="column">
+                <img style='height: 100%; width: 100%; object-fit: contain' src={{=URL('static', 'images', args='logo_home.png')}}>
+            </div>
+            <div class="column" style="padding-top: 5%">
+                <div class="img-container" style="padding-bottom: 25px">
+                    <img src={{=URL('static', 'images', args='wipro.png')}} width="20%">
+                </div>
+                <h1 style="text-align: center; padding-bottom: 25px">
+                {{=T('Members Login') if request.args(0) == 'login' else T(request.args(0).replace('_',' ').title())}}
+                </h1>
+                <div id="users_form" style="font-size: large; font-weight: bold">
+                    {{=form}}
+                </div>
+                <div id="change password" style="text-align: center">
+                    {{if request.args(0)=='login':}}
+                    <a style="color: black; font-size: large; font-weight: bold" href="{{=URL('default', 'change_password')}}">Forgot Password</a>
+                    {{pass}}
+                </div>
+            </div>
         </div>
     </div>
 </div>

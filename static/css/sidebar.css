@@ -55,8 +55,10 @@
 }
 
 #sidebar ul li a:hover {
-    color: #7386D5;
-    background: #fff;
+    color: #d39e00;
+    font-size: x-large;
+    font-weight: bolder;
+    background: #0062cc;
 }
 
 #sidebar ul li.active>a,
@@ -144,4 +146,18 @@ a.article:hover {
     #sidebarCollapse span {
         display: none;
     }
+}
+
+/* Create two equal columns that floats next to each other */
+.column {
+  float: left;
+  width: 50%;
+  padding: 10px; /* Should be removed. Only for demonstration */
+}
+
+/* Clear floats after the columns */
+.row:after {
+  content: "";
+  display: table;
+  clear: both;
 }
