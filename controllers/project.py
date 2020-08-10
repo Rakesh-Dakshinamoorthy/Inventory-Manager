@@ -1,7 +1,7 @@
 # import any files needed for development
 from gluon.html import BUTTON
 from gluon.contrib.appconfig import AppConfig
-from helpers import UsersDB, AssetDB
+from helpers import UsersDB, AssetDB, AddToDB
 from ui_elements import *
 
 app_config = AppConfig(reload=False)
@@ -182,10 +182,9 @@ def add_user():
     )
 
     if form.process().accepted:
-        user = db.auth_user.insert(user_name=form.vars.user_name,
-                                   email=form.vars.email,
-                                   password=CRYPT().validate(default_password))
-        auth.add_membership(4, user.id)
+        AddToDB(db).add_user(user_name=form.vars.user_name,
+                             email=form.vars.email,
+                             password=CRYPT().validate(default_password))
         db.commit()
         redirect(URL('project', 'users.html'), client_side=True)
     return form
@@ -273,3 +272,5 @@ def member():
         deletable=False, details=False, create=False
     )
     return locals()
+
+

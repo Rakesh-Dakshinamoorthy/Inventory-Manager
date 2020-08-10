@@ -1,5 +1,6 @@
 {{extend 'layout.html'}}
 <div class="container col-md-9" style="margin-top: 5%">
+    {{if len(request.args) == 1:}}
     <div class="row">
         <div class="container-fluid">
             <div class="card-deck">
@@ -18,9 +19,11 @@
             </div>
         </div>
     </div>
+    {{pass}}
     {{if request.args(0) == "all":}}
     {{include 'asset/add_asset.html'}}
     {{include 'asset/change_assignee.html'}}
+    {{include 'asset/edit_remarks.html'}}
     {{pass}}
     <H1 style="font-family: Calibri; font-weight: bolder; padding-bottom: 10px">Assets</H1>
     {{=grid}}

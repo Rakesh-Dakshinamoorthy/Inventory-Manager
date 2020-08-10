@@ -40,7 +40,7 @@
         <!-- Sidebar -->
         <nav id="sidebar" class="bg-dark">
             <div class="sidebar-header" style="background-color: #0e0e0e; padding: 10px">
-                <img style='height: 100%; width: 100%; object-fit: contain;' src={{=URL('static', 'images', args='logo.png')}}>
+                <a href="{{=URL('default', 'index')}}"><img style='height: 100%; width: 100%; object-fit: contain;' src={{=URL('static', 'images', args='logo.png')}}></a>
             </div>
             <div class="sidebar-header bg-warning" style="padding: 10px">
                 <h4 style="color: #1b1e21">Welcome,</h4>
@@ -65,7 +65,11 @@
         </nav>
         <!-- Page Content -->
         <div id="content">
-            <div class="w2p_flash alert">{{=response.flash or ''}}</div>
+            {{if response.flash:}}
+            <div class="w2p_flash alert">
+                {{=response.flash}}
+            </div>
+            {{pass}}
             {{include}}
         </div>
     </div>

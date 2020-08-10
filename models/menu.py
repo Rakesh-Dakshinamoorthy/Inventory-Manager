@@ -5,9 +5,7 @@
 # this is the main application menu add/remove items as required
 # ----------------------------------------------------------------------------------------------------------------------
 
-response.menu = [
-    (T('Home'), False, URL('default', 'index'), [])
-]
+response.menu = []
 
 if auth.has_membership(role="Leads"):
     response.menu.extend([
@@ -28,7 +26,8 @@ elif auth.has_membership(role="Administrator"):
         (T('Audit'), False, URL('asset', 'view_audit'), []),
         (T('History'), False, URL('asset', 'view_asset_history'), []),
         (T('Team'), False, URL('project', 'team'), []),
-        (T('Users'), False, URL('project', 'users'), [])
+        (T('Users'), False, URL('project', 'users'), []),
+        (T('Import'), False, URL('asset', 'import_data'), [])
     ])
 elif auth.has_membership(role="Users"):
     response.menu.append(

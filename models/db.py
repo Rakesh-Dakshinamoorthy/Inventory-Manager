@@ -107,7 +107,7 @@ db.define_table(
           writable=False, readable=False, default=''),
     Field('registration_id', length=512,                 # required
           writable=False, readable=False, default=''),
-    format="%(email)s")
+    format=lambda r: "{}".format(r.email.lower().split("@wipro.com")[0]))
 
 ## do not forget validators
 auth.settings.table_user = db[auth.settings.table_user_name]

@@ -22,7 +22,7 @@
     position: fixed;
     top: 0;
     left: 0;
-    height: 100vh;
+    height: 100%;
     z-index: 999;
     background: #7386D5;
     color: #fff;
@@ -126,10 +126,6 @@ a.article:hover {
     width: 100%;
 }
 
-/* ---------------------------------------------------
-    MEDIAQUERIES
------------------------------------------------------ */
-
 @media (max-width: 768px) {
     #sidebar {
         margin-left: -300px;
@@ -148,6 +144,19 @@ a.article:hover {
     }
 }
 
+@media (max-height: 720px) {
+    #sidebar .sidebar-header {
+        padding: 5px;
+    }
+    #sidebar ul.components {
+        padding: 5px 0;
+    }
+    #sidebar ul li a {
+        padding: 5px;
+    }
+
+}
+
 /* Create two equal columns that floats next to each other */
 .column {
   float: left;
@@ -161,3 +170,4 @@ a.article:hover {
   display: table;
   clear: both;
 }
+

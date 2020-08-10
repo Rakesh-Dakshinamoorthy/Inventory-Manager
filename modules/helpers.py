@@ -1,4 +1,5 @@
 import pandas as pd
+from gluon.tools import Auth
 
 
 class UsersDB(object):
@@ -137,3 +138,22 @@ class AssetDB(AssetCategoryDB,  MembersDB):
 
     def user_assets_df(self, user_id):
         return pd.DataFrame(self.user_assets(user_id).as_list())
+
+
+class AddToDB(object):
+    def __init__(self, db):
+        self.db = db
+
+    def add_new_asset(self, **kwargs):
+        asset = self.db.asset
+        asset.insert(**kwargs)
+
+    def add_user(self, **kwargs):
+        users = self.db.auth_user
+        auth = Auth(self.db)
+        user = users.insert(**kwargs)
+        auth.add_membership(4, user.id)
+
+    def add_asset_category(self, **kwargs):
+        category = self.db.asset_category
+        category.insert(**kwargs)

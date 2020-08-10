@@ -21,11 +21,21 @@ btn_add_user = BUTTON(
         **{'_data-toggle': 'modal', '_data-target': '#add_user'}
     )
 
+
 def change_assignee_button(row):
     return A('Change Assignee',
              _class='button btn btn-secondary',
              _href='#change_assignee',
              **{'_data-toggle': 'modal', '_data-rowid': row.asset_id}
+             )
+
+
+def edit_remarks_button(row):
+    return A('Edit Remarks',
+             _class='button btn btn-secondary',
+             _href='#edit_remarks',
+             **{'_data-toggle': 'modal', '_data-rowid': row.asset_id,
+                '_data-remarks': row.remarks}
              )
 
 

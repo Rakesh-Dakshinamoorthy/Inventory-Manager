@@ -1,9 +1,14 @@
 # import any files needed for development
+import os
+import pandas as pd
+from datetime import datetime
 from web_page_data import AboutPage
-from constants import asset_working_status, request_assignee_change, \
-    changed_status, audited, assignee_changed, request_rejected, \
-    request_cancelled
+from constants import *
 from ui_elements import *
+from helpers import AddToDB
+
+app_config = AppConfig(reload=False)
+default_password = app_config.get('password.default_password')
 
 
 @auth.requires_login()
@@ -16,7 +21,7 @@ def home():
     response.flash = T('Welcome to Inventory Manager')
     body = AboutPage().body
     admin_ids = list(map(
-        lambda _: _.id, db(db.auth_membership.group_id == 1).select()
+        lambda _: _.user_id, db(db.auth_membership.group_id == 1).select()
     ))
     admin_emails = list(map(
         lambda _: _.email, db(db.auth_user.id.belongs(admin_ids)).select()
@@ -109,12 +114,13 @@ def __view_grids_templates(view='all'):
         return {
             "fields": [db.asset.asset_id, db.asset.category, db.asset.name,
                        db.asset.procurement_id, db.asset.assigned_to,
-                       db.asset.hardware_status],
+                       db.asset.hardware_status, db.asset.remarks],
             "links": [view_history_link, change_assignee_button,
-                      change_status_button],
+                      change_status_button, edit_remarks_button],
             "csv": True, "create": False, "editable": False, "create": False,
-            "args": request.args, "searchable": True, "details": False,
-            "deletable": True if auth.has_membership(group_id=1) else False
+            "args": request.args, "searchable": True, "details": True,
+            "deletable": True if auth.has_membership(group_id=1) else False,
+            "maxtextlengths": {"asset.remarks": 40}
         }
     elif view == "transferring":
         return {
@@ -184,7 +190,7 @@ def view():
                         **__view_grids_templates(request.args[0].lower()),
                         paginate=20)
 
-    if request.args[0].lower() == 'all':
+    if request.args[0].lower() == 'all' and len(request.args) == 1:
         grid.elements(_class='web2py_console  ')[0].components[0] = \
             btn_add_asset
 
@@ -195,19 +201,26 @@ def add_asset():
     db.asset.assigned_to.writable = db.asset.transferring_to.writable = False
     form = SQLFORM.factory(db.asset)
     if form.process().accepted:
-        db.asset.insert(**form.vars, **{'assigned_to': auth.user})
+        AddToDB(db).add_new_asset(**form.vars, **{'assigned_to': auth.user})
         response.flash = 'Asset is added'
         redirect(URL('asset', 'view.html', args=['all']), client_side=True)
     return form
 
 
+def __category_deletable(row):
+    return False if db(db.asset.category == row.id).select() else True
+
+
 @auth.requires_login()
 def category():
     db.asset_category.id.readable = False
+    if auth.has_membership(group_id=1):
+        deletable = __category_deletable
+    else:
+        deletable = False
     grid = SQLFORM.grid(
         db.asset_category, searchable=True, csv=False, editable=False,
-        deletable=True if auth.has_membership(group_id=1) else False,
-        details=False, create=False,
+        deletable=deletable, details=False, create=False,
         maxtextlengths={'asset_category.category': 20,
                         'asset_category.description': 80}
     )
@@ -219,7 +232,7 @@ def category():
 def add_category():
     form = SQLFORM.factory(db.asset_category)
     if form.process().accepted:
-        db.asset_category.insert(**form.vars)
+        AddToDB(db).add_asset_category(**form.vars)
         response.flash = 'Asset category is added'
         redirect(URL('asset', 'category.html'), client_side=True)
     return form
@@ -230,10 +243,6 @@ def view_audit():
     db.asset.id.readable = db.asset.remarks.readable = \
         db.asset.transferring_to.readable = False
 
-    form = SQLFORM.factory(
-        Field('Asset'),
-        Field('audited_on', 'datetime', requires=IS_NOT_EMPTY())
-    )
     grid = SQLFORM.grid(
         db.asset, searchable=True, csv=True, editable=False,
         deletable=False, details=False, create=False, links=[audit_button]
@@ -297,8 +306,8 @@ def history():
     grid = SQLFORM.grid(
         db(db.asset_history.asset_id == asset_id), searchable=False, csv=False,
         editable=False, deletable=False, details=False, create=False,
-        user_signature=False, maxtextlengths={'Information': 100},
-        maxtextlength=100
+        args=request.args, user_signature=False,
+        maxtextlengths={'Information': 100}, maxtextlength=100
     )
     return locals()
 
@@ -313,3 +322,174 @@ def view_asset_history():
         maxtextlength=100, paginate=50
     )
     return {"grid": grid}
+
+
+def edit_remarks():
+    remarks_to_form = SQLFORM.factory(
+        Field('Asset'),
+        Field('remarks')
+    )
+
+    if remarks_to_form.process().accepted:
+        asset = \
+            db(db.asset.asset_id == remarks_to_form.vars.Asset).select().first()
+        previous_remarks = asset.remarks
+
+        db.asset_history.insert(
+            asset_id=asset.asset_id,
+            asset_operation=edit_remarks_value,
+            information="changing remarks from '{}'".format(previous_remarks),
+            user_signature=auth.user
+            )
+        db(db.asset.asset_id == remarks_to_form.vars.Asset).update(
+            remarks=remarks_to_form.vars.remarks
+        )
+        redirect(URL('asset', 'view.html', args=['all']), client_side=True)
+    return remarks_to_form
+
+
+def __import_new_user(data, import_to_db, fields):
+    if data.columns.tolist() != fields:
+        raise HTTP(400, "Required field are missing")
+    error = []
+    for pos, _ in data.iterrows():
+        try:
+            import_to_db.add_user(
+                user_name=_.user_name, email=_.email,
+                password=CRYPT().validate(default_password)
+            )
+        except Exception:
+            error.append(str(pos+2))
+    return error
+
+
+def __import_category(data, import_to_db, fields):
+    if data.columns.tolist() != fields:
+        raise HTTP(400, "Required field are missing")
+    error = []
+    for pos, _ in data.iterrows():
+        try:
+            import_to_db.add_asset_category(
+                category=_.category, description=_.description
+            )
+        except Exception:
+            error.append(str(pos+2))
+    return error
+
+
+def __mandatory_fields(fields):
+    return list(filter(lambda each: ": optional" in each, fields))
+
+
+def __optional_fields(fields):
+    return filter(lambda each: ": optional" in each, fields)
+
+
+def __import_assets(data, import_to_db, expected_fields):
+    fields = __mandatory_fields(expected_fields)
+    if not all(map(lambda x: x in data.columns.tolist(), fields)):
+        raise HTTP(400, "Required field are missing")
+    add_assignee = "assigned_to" in data.columns.tolist()
+    error = []
+    for pos, _ in data.iterrows():
+        try:
+            if add_assignee:
+                if _.assigned_to != "EMPTY":
+                    assignee = db(db.auth_user.email == _.assigned_to
+                                  ).select().first()
+                else:
+                    assignee = auth.user
+            else:
+                assignee = auth.user
+            import_to_db.add_new_asset(
+                asset_id=_.asset_id, name=_["name"],
+                procurement_id=_.procurement_id, remarks=_.remarks,
+                hardware_status=_.hardware_status, assigned_to=assignee,
+                category=db(
+                    db.asset_category.category == _.category).select().first(),
+            )
+        except Exception as e:
+            error.append(str(pos+2))
+    return error
+
+
+def __import_audit(data, expected_fields):
+    fields = __mandatory_fields(expected_fields)
+    if not all(map(lambda x: x in data.columns.tolist(), fields)):
+        raise HTTP(400, "Required field are missing")
+    status = "hardware_status" in data.columns.tolist()
+    remarks = "remarks" in data.columns.tolist()
+    error = []
+    for pos, _ in data.iterrows():
+        try:
+            asset = db(db.asset.asset_id == _.asset_id).select().first()
+            if status:
+                if _.hardware_status != "EMPTY":
+                    if asset.hardware_status != _.hardware_status:
+                        db(db.asset.id == _.asset_id).update(
+                            hardware_status=_.hardware_status)
+                        db.asset_history.insert(
+                            asset_id=_.asset_id,
+                            asset_operation=changed_status,
+                            information='Asset hardware status changed '
+                                        'to {}'.format(_.hardware_status),
+                            user_signature=auth.user
+                        )
+            if remarks:
+                if _.remarks != "EMPTY":
+                    previous_remarks = asset.remarks
+                    db.asset_history.insert(
+                        asset_id=asset.asset_id,
+                        asset_operation=edit_remarks_value,
+                        information="changing remarks from "
+                                    "'{}'".format(previous_remarks),
+                        user_signature=auth.user
+                    )
+                    db(db.asset.asset_id == _.asset_id).update(
+                        remarks=_.remarks
+                    )
+            audit_time = datetime.now()
+            db(db.asset.asset_id == _.asset_id).update(
+                last_audited_on=audit_time)
+            db.asset_history.insert(
+                asset_id=asset.asset_id, asset_operation=audited,
+                information='audited on: {}'.format(audit_time),
+                user_signature=auth.user
+            )
+        except Exception:
+            error.append(str(pos+2))
+    return error
+
+
+def import_data():
+    import_data_form = SQLFORM.factory(
+        Field('import_to', requires=IS_IN_SET(import_list)),
+        Field('csv_file', 'upload', length=128)
+    )
+    error = ""
+    if import_data_form.process().accepted:
+        data_to_import = pd.read_csv(
+            os.path.join(request.folder, 'uploads',
+                         import_data_form.vars.csv_file),
+            header=0, dtype=str
+        )
+        data_to_import.fillna(value="EMPTY", inplace=True)
+        import_to_db = AddToDB(db)
+        if import_data_form.vars.import_to == add_user:
+            error = __import_new_user(data_to_import, import_to_db,
+                                      upload_fields[add_user])
+        elif import_data_form.vars.import_to == add_asset_category:
+            error = __import_category(data_to_import, import_to_db,
+                                      upload_fields[add_asset_category])
+        elif import_data_form.vars.import_to == add_assets:
+            error = __import_assets(data_to_import, import_to_db,
+                                    upload_fields[add_assets])
+        elif import_data_form.vars.import_to == import_audit:
+            error = __import_audit(data_to_import, upload_fields[import_audit])
+        db.commit()
+        os.remove(os.path.join(request.folder, 'uploads',
+                               import_data_form.vars.csv_file))
+
+    return {"form": import_data_form, "upload_fields": upload_fields,
+            "error": error}
+
