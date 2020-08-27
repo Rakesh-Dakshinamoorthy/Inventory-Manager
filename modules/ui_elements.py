@@ -40,7 +40,7 @@ def edit_remarks_button(row):
 
 
 def view_history_link(row):
-    return A('History', _href=URL('asset', 'history', args=[row.asset_id]))
+    return A('History', _href=URL('asset', 'history', args=[row.id]))
 
 
 def change_status_button(row):

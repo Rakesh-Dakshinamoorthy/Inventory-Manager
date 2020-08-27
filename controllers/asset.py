@@ -302,12 +302,12 @@ def change_assignee():
 @auth.requires_login()
 def history():
     db.asset_history.id.readable = db.asset_history.asset_id.readable = False
-    asset_id = request.args[0]
+    asset_id = db(db.asset.id == request.args[0]).select().first().asset_id
     grid = SQLFORM.grid(
         db(db.asset_history.asset_id == asset_id), searchable=False, csv=False,
         editable=False, deletable=False, details=False, create=False,
         args=request.args, user_signature=False,
-        maxtextlengths={'Information': 100}, maxtextlength=100
+        maxtextlengths={'asset_history.information': 100}
     )
     return locals()
 
@@ -318,8 +318,8 @@ def view_asset_history():
     grid = SQLFORM.grid(
         db.asset_history, searchable=True, csv=True,
         editable=False, deletable=False, details=False, create=False,
-        user_signature=False, maxtextlengths={'Information': 100},
-        maxtextlength=100, paginate=50
+        user_signature=False, paginate=50,
+        maxtextlengths={'asset_history.information': 100}
     )
     return {"grid": grid}
 
@@ -378,7 +378,7 @@ def __import_category(data, import_to_db, fields):
 
 
 def __mandatory_fields(fields):
-    return list(filter(lambda each: ": optional" in each, fields))
+    return list(filter(lambda each: ": optional" not in each, fields))
 
 
 def __optional_fields(fields):
