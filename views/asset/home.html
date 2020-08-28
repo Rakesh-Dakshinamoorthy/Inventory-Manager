@@ -1,17 +1,24 @@
 {{extend 'layout.html'}}
-<h1>Inventory Management Tool</h1>
-<p>{{=body}}</p>
-<div class="container">
-    <div class="row">
-        <div class="card-deck">
+<div class="jumbotron col-md-10" style="margin-left: auto; margin-right: auto; margin-top: 5%; margin-bottom: 5%; border-radius:20px;">
+  <h1 class="display-3" style="font-family: Calibri; font-weight: bolder;">Inventory Management Tool</h1>
+  <p class="lead">{{=body}}</p>
+  <hr class="my-4">
+  <div class="row">
+        <div class="card-deck" style="margin-left: auto; margin-right: auto">
             {{for users in user:}}
-                <div class="card text-white bg-dark mb-3" style="max-width: 18rem;">
-                    <div class="card-header">{{=users.capitalize()}}</div>
+                <div class="card text-white bg-info mb-3" style="max-width: 18rem; border-radius:15px;">
+                    <div class="card-header"><h3>{{=users.capitalize()}}</h3></div>
                     <div class="card-body">
-                        <p class="card-text">{{=user_manual[users]}}</p>
+                        <p class="card-text"><h5>{{=user_manual[users]}}</h5></p>
                     </div>
                 </div>
             {{pass}}
         </div>
+    </div>
+    <br>
+    <div class="row">
+        <h7>This tool is developed using web2py framework. Anyone having any ideas please contact </h7>
+        <h7 style="color: #007bff; font-weight: bolder; padding-left: 5px; padding-right: 5px">{{=footer}}</h7>
+        <h7>for implementing it.</h7>
     </div>
 </div>

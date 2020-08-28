@@ -1,36 +1,34 @@
 {{extend 'layout.html'}}
-<body style="background-size: cover" background={{=URL('static', 'images', args='background.jpg')}}>
-<div class="row" style="vertical-align: middle; padding-top: 12%">
-    <div id="web2py_user_form" class="col-lg-4" style="background-color:transparent; margin: 0 auto 5px auto; box-shadow: 0 0 5px #a1a1a1; border-radius:5px;padding: 20px">
-        <font color="white">
-            <h2>
-            {{=T('Sign Up') if request.args(0) == 'register' else T('Log In') if request.args(0) == 'login' else T(request.args(0).replace('_',' ').title())}}
-            </h2>
-            {{=form}}
-            {{if request.args(0)=='login' and not 'register' in auth.settings.actions_disabled:}}
-            <a href="{{=URL('user/register')}}" style="color: white">{{=T('Register')}}</a>
-            <br/>
-            {{pass}}
-            {{if request.args(0)=='register':}}
-            <a href="{{=URL('user/login')}}" style="color: white"   >{{=T('Login')}}</a>
-            <br/>
-            {{pass}}
-            {{if request.args(0)=='login':}}
-            <a href="{{=URL('default', 'change_password')}}" style="color: white">Change Password</a>
-            {{pass}}
-            <div class="row">
-                <div class="col-sm-5"><img src={{=URL('static', 'images', args='ford.png')}} width="25%"></div>
-                    <div class="col-sm-7" style="padding-left: 50%"><img src={{=URL('static', 'images', args='wipro.png')}} width="100%"></div>
+<style>
+  .img-container {
+    text-align: center;
+  }
+</style>
+<div class="row" style="vertical-align: middle; padding-top: 5%">
+    <div id="web2py_user_form" class="col-lg-6" style="color:black; background-color:white; margin: 0 auto 5px auto; box-shadow: 0 0 5px #a1a1a1; border-radius:10px">
+        <div class="row" style="padding: 0%">
+            <div class="column">
+                <img style='height: 100%; width: 100%; object-fit: contain' src={{=URL('static', 'images', args='logo_home.png')}}>
             </div>
-        </font>
+            <div class="column" style="padding-top: 5%">
+                <div class="img-container" style="padding-bottom: 25px">
+                    <img src={{=URL('static', 'images', args='wipro.png')}} width="20%">
+                </div>
+                <h1 style="text-align: center; padding-bottom: 25px">
+                {{=T('Members Login') if request.args(0) == 'login' else T(request.args(0).replace('_',' ').title())}}
+                </h1>
+                <div id="users_form" style="font-size: large; font-weight: bold">
+                    {{=form}}
+                </div>
+                <div id="change password" style="text-align: center">
+                    {{if request.args(0)=='login':}}
+                    <a style="color: black; font-size: large; font-weight: bold" href="{{=URL('default', 'change_password')}}">Forgot Password</a>
+                    {{pass}}
+                </div>
+            </div>
+        </div>
     </div>
 </div>
-
-</body>
-
-
-
-
 {{block page_js}}
 <script>
     jQuery("#web2py_user_form input:visible:enabled:first").focus();

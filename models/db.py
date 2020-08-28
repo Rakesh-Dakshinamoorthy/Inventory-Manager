@@ -87,7 +87,30 @@ response.form_label_separator = ''
 
 # host names must be a list of allowed host names (glob syntax allowed)
 auth = Auth(db, host_names=configuration.get('host.names'))
+db.define_table(
+    auth.settings.table_user_name,
+    Field('user_name', length=128, default='',
+          requires=IS_NOT_EMPTY(error_message=auth.messages.is_empty)),
+    Field('email', length=128, default='', unique=True,
+          requires=[
+              IS_NOT_IN_DB(db,
+                           "{}.email".format(auth.settings.table_user_name)
+                           ),
+              IS_MATCH('[-a-zA-Z0-9.`?{}]+@wipro.com',
+                       error_message='Enter wipro mail id')
+          ]),
+    Field('password', 'password', length=512, readable=False, label='Password',
+          requires=[IS_STRONG(), CRYPT()]),
+    Field('registration_key', length=512,                # required
+          writable=False, readable=False, default=''),
+    Field('reset_password_key', length=512,              # required
+          writable=False, readable=False, default=''),
+    Field('registration_id', length=512,                 # required
+          writable=False, readable=False, default=''),
+    format=lambda r: "{}".format(r.email.lower().split("@wipro.com")[0]))
 
+## do not forget validators
+auth.settings.table_user = db[auth.settings.table_user_name]
 # -------------------------------------------------------------------------
 # create all tables needed by auth, maybe add a list of extra fields
 # -------------------------------------------------------------------------

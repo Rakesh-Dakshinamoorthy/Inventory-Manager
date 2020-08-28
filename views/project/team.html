@@ -1,109 +1,15 @@
 {{extend 'layout.html'}}
-<div class="container col-md-9">
-    <!-- Modal -->
-    <div class="modal fade" id="addteam" tabindex="-1" role="dialog"
-         aria-labelledby="addteamTitle" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="addteamTitle">Add Team</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            {{=LOAD('project', 'add_team.load', ajax=True, ajax_trap=True, user_signature=True)}}
-          </div>
-        </div>
-      </div>
-    </div>
-    {{if lead_btn == True:}}
-    <div class="modal fade" id="assignlead" tabindex="-1" role="dialog"
-         aria-labelledby="assignleadTitle" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="assignleadTitle">Assign Lead</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            {{=LOAD('project', 'assign_lead.load', vars={'leads': leads}, ajax=True, ajax_trap=True,
-            user_signature=True)}}
-          </div>
-        </div>
-      </div>
-    </div>
+<div class="container col-md-9" style="margin-top: 5%">
+    <H1 style="font-family: Calibri; font-weight: bolder; padding-bottom: 10px">Team</H1>
+    {{include 'project/add_team.html'}}
+    {{if lead_btn == True and leads:}}
+    {{include 'project/assign_lead.html'}}
     {{pass}}
-    {{if manager_btn == True:}}
-    <div class="modal fade" id="assignmanager" tabindex="-1" role="dialog"
-         aria-labelledby="assignmanagerTitle" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="assignmanagerTitle">Assign Manager</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-              {{=LOAD('project', 'assign_manager.load', vars={'managers': managers}, ajax=True, ajax_trap=True, user_signature=True)}}
-          </div>
-        </div>
-      </div>
-    </div>
+    {{if manager_btn == True and managers:}}
+    {{include 'project/assign_manager.html'}}
     {{pass}}
-    {{if member_btn == True:}}
-    <div class="modal fade" id="assignmember" tabindex="-1" role="dialog"
-         aria-labelledby="assignmemberTitle" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="assignmemberTitle">Assign Member</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            {{=LOAD('project', 'assign_member.load', vars={'members': members}, ajax=True, ajax_trap=True, user_signature=True)}}
-          </div>
-        </div>
-      </div>
-    </div>
+    {{if member_btn == True and members:}}
+    {{include 'project/assign_member.html'}}
     {{pass}}
     {{=grid}}
-    {{if lead_btn == True:}}
-    <script>
-        $('#assignlead').on('show.bs.modal', function (event) {
-        var button = $(event.relatedTarget) // Button that triggered the modal
-        var rowid = button.data('rowid') // Extract info from data-* attributes
-        // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
-        var modal = $(this)
-        modal.find('input[name$="Team"]').val(rowid)
-        })
-    </script>
-    {{pass}}
-    {{if manager_btn == True:}}
-    <script>
-        $('#assignmanager').on('show.bs.modal', function (event) {
-        var button = $(event.relatedTarget) // Button that triggered the modal
-        var rowid = button.data('rowid') // Extract info from data-* attributes
-        // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
-        var modal = $(this)
-        modal.find('input[name$="Team"]').val(rowid)
-        })
-    </script>
-    {{pass}}
-    {{if member_btn == True:}}
-    <script>
-        $('#assignmember').on('show.bs.modal', function (event) {
-        var button = $(event.relatedTarget) // Button that triggered the modal
-        var rowid = button.data('rowid') // Extract info from data-* attributes
-        // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
-        var modal = $(this)
-        modal.find('input[name$="Team"]').val(rowid)
-        })
-    </script>
-    {{pass}}
 </div>

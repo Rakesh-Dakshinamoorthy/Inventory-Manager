@@ -1,0 +1,19 @@
+{{extend 'layout.html'}}
+<div class="container col-md-9" style="margin-top: 5%">
+<div id="import_form" class="jumbotron col-md-5" style="margin-left: auto; margin-right: auto; border-radius:20px; font-weight: bolder">
+   {{=form}}
+</div>
+<div id="field_table">
+    <table class="table">
+        <thead class="table-secondary" style="color:#007bff"><tr><th>Input CSV
+            File</th><th>Fields</th></tr></thead>
+        {{for csv_file, fields in upload_fields.items():}}
+        <tr><td>{{=csv_file.capitalize()}}</td><td>{{=", ".join(fields)}}</td></tr>
+        {{pass}}
+    </table>
+</div>
+{{if error:}}
+<p style="font-weight: bolder; color:red">Error while updating the below rows
+{{=", ".join(error)}}</p>
+{{pass}}
+</div>

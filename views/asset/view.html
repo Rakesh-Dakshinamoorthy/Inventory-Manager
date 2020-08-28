@@ -1,46 +1,32 @@
 {{extend 'layout.html'}}
-<div class="container col-md-9">
-    <div class="modal fade" id="addasset" tabindex="-1" role="dialog"
-         aria-labelledby="addassetTitle" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="addassetTitle">Add Asset</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            {{=LOAD('asset', 'add.load', ajax=True, ajax_trap=True, user_signature=True)}}
-          </div>
+<div class="container col-md-9" style="margin-top: 5%">
+    {{if len(request.args) == 1:}}
+    <div class="row">
+        <div class="container-fluid">
+            <div class="card-deck">
+                {{for sub_page in card_properties:}}
+                    <div class="{{=sub_page["card_style"]}}" style="border-radius:15px">
+                        <div class="card-body">
+                            <h1>{{=len(sub_page["count"].select())}}</h1>
+                            <br>
+                            <h4>{{=sub_page["header"]}}</h4>
+                        </div>
+                        <div class="card-footer">
+                            <a href="{{=sub_page["url"]}}" class="card-body" style="color: white">More info <i class="fa fa-arrow-circle-right"></i></a>
+                        </div>
+                    </div>
+                {{pass}}
+            </div>
         </div>
-      </div>
     </div>
-    <div class="modal fade" id="changeassignee" tabindex="-1" role="dialog"
-         aria-labelledby="changeassigneeTitle" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="changeassigneeTitle">Change Assigned to</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            {{=LOAD('asset', 'change_assignee.load', vars={'users': users}, ajax=True, ajax_trap=True,
-            user_signature=True)}}
-          </div>
-        </div>
-      </div>
-    </div>
+    {{pass}}
+    {{if request.args(0) == "all":}}
+    {{include 'asset/add_asset.html'}}
+    {{include 'asset/change_assignee.html'}}
+    {{include 'asset/edit_remarks.html'}}
+    {{elif request.args(0) == "transferring":}}
+    {{include 'asset/change_assignee.html'}}
+    {{pass}}
+    <H1 style="font-family: Calibri; font-weight: bolder; padding-bottom: 10px">Assets</H1>
     {{=grid}}
-    <script>
-        $('#changeassignee').on('show.bs.modal', function (event) {
-        var button = $(event.relatedTarget) // Button that triggered the modal
-        var rowid = button.data('rowid') // Extract info from data-* attributes
-        // Update the modal's content. We'll use jQuery here, but you could use a data binding library or other methods instead.
-        var modal = $(this)
-        modal.find('input[name$="Asset"]').val(rowid)
-        })
-    </script>
 </div>
