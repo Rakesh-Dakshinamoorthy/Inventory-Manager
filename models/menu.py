@@ -19,7 +19,7 @@ elif auth.has_membership(role="Managers"):
          (T('Team'), False, URL('project', 'team'), []),
          (T('Users'), False, URL('project', 'users'), [])]
     )
-elif auth.has_membership(role="Administrator"):
+elif auth.has_membership(role="Admin"):
     response.menu.extend([
         (T('Asset'), False, URL('asset', 'view', args=['all']), []),
         (T('Category'), False, URL('asset', 'category'), []),

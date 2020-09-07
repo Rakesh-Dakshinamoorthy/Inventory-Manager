@@ -17,9 +17,9 @@ import_list = [add_user, add_asset_category, add_assets, import_audit]
 upload_fields = {
     add_user: ["user_name", "email"],
     add_asset_category: ["category", "description"],
-    add_assets: ["asset_id", "category", "name", "procurement_id",
+    add_assets: ["asset_id", "serial_no", "category", "name", "procurement_id",
                  "assigned_to: optional", "remarks", "hardware_status"],
-    import_audit: ["asset_id", "hardware_status: optional",
+    import_audit: ["id", "hardware_status: optional",
                    "remarks: optional"]
 }
 

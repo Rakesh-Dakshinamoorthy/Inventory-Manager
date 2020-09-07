@@ -134,6 +134,10 @@ def query_by_table_type(tablename, db, request=request):
 # ###########################################################
 @auth.requires_membership(group_id=1)
 def index():
+    # db.asset.truncate()
+    # db.asset_history.truncate()
+    # db.auth_user.truncate()
+    # db.asset_category.truncate()
     return dict(databases=databases)
 
 

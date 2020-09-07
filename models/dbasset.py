@@ -29,9 +29,16 @@ db.define_table('asset_category',
                 format="%(category)s")
 
 db.define_table('asset',
-                Field('asset_id', label="ID", unique=True,
-                      requires=(IS_NOT_EMPTY(),
-                                IS_NOT_IN_DB(db, 'asset.asset_id'))),
+                Field('asset_id', label="ID", default="NA",
+                      requires=ANY_OF(
+                          [IS_IN_SET(['NA']),
+                           IS_NOT_IN_DB(db, 'asset.asset_id')]
+                      )),
+                Field('serial_no', label="Serial no/Part no", default='NA',
+                      requires=ANY_OF(
+                          [IS_IN_SET(['NA']),
+                           IS_NOT_IN_DB(db, 'asset.serial_no')]
+                      )),
                 Field('category', db.asset_category),
                 Field('name', requires=IS_NOT_EMPTY()),
                 Field('procurement_id', requires=IS_NOT_EMPTY()),
@@ -40,11 +47,10 @@ db.define_table('asset',
                 Field('hardware_status', label="Status",
                       requires=IS_IN_SET(asset_working_status)),
                 Field('last_audited_on', 'datetime', default=None),
-                Field('transferring_to', db.auth_user, default=None),
-                format="%(asset_id)s %(name)s")
+                Field('transferring_to', db.auth_user, default=None))
 
 db.define_table('asset_history',
-                Field('asset_id', 'string'),
+                Field('asset_id', requires=IS_IN_DB(db, 'asset.id')),
                 Field('asset_operation', 'string',
                       requires=(IS_NOT_EMPTY(),
                                 IS_IN_SET(created, request_assignee_change,
@@ -56,10 +62,10 @@ db.define_table('asset_history',
 
 
 def add_asset_history(id):
-    asset = db(db.asset.id == id).select().first()
     db.asset_history.insert(
-        asset_id=asset.asset_id, asset_operation=created,
-        information='Asset is newly added', user_signature=auth.user
+        asset_id=id,
+        asset_operation=created, information='Asset is newly added',
+        user_signature=auth.user
     )
 
 

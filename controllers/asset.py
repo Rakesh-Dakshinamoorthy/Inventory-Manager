@@ -31,10 +31,9 @@ def home():
 
 
 def cancel_assignee():
-    asset = db(db.asset.id == request.args[0]).select().first()
     db(db.asset.id == request.args(0)).update(transferring_to=None)
     db.asset_history.insert(
-        asset_id=asset.asset_id, asset_operation=request_cancelled,
+        asset_id=request.args(0), asset_operation=request_cancelled,
         information='Asset transfer canceled',
         user_signature=auth.user
     )
@@ -44,10 +43,9 @@ def cancel_assignee():
 
 
 def reject_assignee():
-    asset = db(db.asset.id == request.args[0]).select().first()
     db(db.asset.id == request.args(0)).update(transferring_to=None)
     db.asset_history.insert(
-        asset_id=asset.asset_id, asset_operation=request_rejected,
+        asset_id=request.args(0), asset_operation=request_rejected,
         information='Asset transfer request is rejected transferring back '
                     'to same user',
         user_signature=auth.user
@@ -63,7 +61,7 @@ def accept_assignee():
         assigned_to=asset.transferring_to, transferring_to=None
     )
     db.asset_history.insert(
-        asset_id=asset.asset_id, asset_operation=assignee_changed,
+        asset_id=request.args(0), asset_operation=assignee_changed,
         information="Asset transfer from {} to {}".format(
             asset.assigned_to.email, asset.transferring_to.email
         ),
@@ -75,13 +73,13 @@ def accept_assignee():
 
 
 def change_status():
-    asset = db(db.asset.id == request.args[0]).select().first()
+    asset = db(db.asset.id == request.args(0)).select().first()
     new_status = (asset_working_status[1]
                   if asset.hardware_status == asset_working_status[0]
                   else asset_working_status[0])
     db(db.asset.id == request.args[0]).update(hardware_status=new_status)
     db.asset_history.insert(
-        asset_id=asset.asset_id, asset_operation=changed_status,
+        asset_id=request.args(0), asset_operation=changed_status,
         information='Asset hardware status changed to {}'.format(new_status),
         user_signature=auth.user
     )
@@ -112,9 +110,10 @@ def __team_members():
 def __view_grids_templates(view='all'):
     if view == 'all':
         return {
-            "fields": [db.asset.asset_id, db.asset.category, db.asset.name,
-                       db.asset.procurement_id, db.asset.assigned_to,
-                       db.asset.hardware_status, db.asset.remarks],
+            "fields": [db.asset.asset_id, db.asset.serial_no, db.asset.name,
+                       db.asset.category, db.asset.procurement_id,
+                       db.asset.assigned_to, db.asset.hardware_status,
+                       db.asset.remarks],
             "links": [view_history_link, change_assignee_button,
                       change_status_button, edit_remarks_button],
             "csv": True, "create": False, "editable": False, "create": False,
@@ -124,7 +123,8 @@ def __view_grids_templates(view='all'):
         }
     elif view == "transferring":
         return {
-            "fields": [db.asset.asset_id, db.asset.category, db.asset.name,
+            "fields": [db.asset.asset_id, db.asset.serial_no,
+                       db.asset.category, db.asset.name,
                        db.asset.transferring_to],
             "links": [change_assignee_button, cancel_assignee_button],
             "csv": True, "create": False, "editable": False, "create": False,
@@ -133,7 +133,8 @@ def __view_grids_templates(view='all'):
         }
     elif view == "undeclared":
         return {
-            "fields": [db.asset.asset_id, db.asset.category, db.asset.name,
+            "fields": [db.asset.asset_id, db.asset.serial_no,
+                       db.asset.category, db.asset.name,
                        db.asset.remarks, db.asset.hardware_status,
                        db.asset.assigned_to],
             "links": [accept_assignee_button, reject_assignee_button],
@@ -256,7 +257,7 @@ def audit():
         Field('audited_on', 'datetime', requires=IS_NOT_EMPTY())
     )
     if form.process().accepted:
-        db(db.asset.asset_id == form.vars.Asset).update(
+        db(db.asset.id == form.vars.Asset).update(
             last_audited_on=form.vars.audited_on)
         db.asset_history.insert(
             asset_id=form.vars.Asset, asset_operation=audited,
@@ -274,23 +275,23 @@ def change_assignee():
     )
     if assign_to_form.process().accepted:
         asset = \
-            db(db.asset.asset_id == assign_to_form.vars.Asset).select().first()
+            db(db.asset.id == assign_to_form.vars.Asset).select().first()
         was_assigned_to = asset.assigned_to
         going_to_be_assigned = db(
             db.auth_user.email == assign_to_form.vars.assigned_to
         ).select().first()
         if asset.transferring_to:
             db.asset_history.insert(
-                asset_id=asset.asset_id,
+                asset_id=asset.id,
                 asset_operation=request_rejected,
                 information="changing assignee to a new user",
                 user_signature=auth.user
             )
-        db(db.asset.asset_id == assign_to_form.vars.Asset).update(
+        db(db.asset.id == assign_to_form.vars.Asset).update(
             transferring_to=going_to_be_assigned
         )
         db.asset_history.insert(
-            asset_id=asset.asset_id, asset_operation=request_assignee_change,
+            asset_id=asset.id, asset_operation=request_assignee_change,
             information=str({'from': was_assigned_to.email,
                              'to': going_to_be_assigned.email}),
             user_signature=auth.user
@@ -302,23 +303,29 @@ def change_assignee():
 @auth.requires_login()
 def history():
     db.asset_history.id.readable = db.asset_history.asset_id.readable = False
-    asset_id = db(db.asset.id == request.args[0]).select().first().asset_id
+    asset = db(db.asset.id == request.args[0]).select().first()
     grid = SQLFORM.grid(
-        db(db.asset_history.asset_id == asset_id), searchable=False, csv=False,
+        db(db.asset_history.asset_id == request.args[0]), searchable=False,
         editable=False, deletable=False, details=False, create=False,
-        args=request.args, user_signature=False,
+        args=request.args, user_signature=False, csv=False,
         maxtextlengths={'asset_history.information': 100}
     )
     return locals()
 
 
-@auth.requires_membership(role="Administrator")
+@auth.requires_membership(role="Admin")
 def view_asset_history():
     db.asset_history.id.readable = False
     grid = SQLFORM.grid(
-        db.asset_history, searchable=True, csv=True,
+        db.asset_history, fields=[
+            db.asset.asset_id, db.asset.serial_no,
+            db.asset_history.asset_operation, db.asset_history.information,
+            db.asset_history.occurred_time, db.asset_history.user_signature
+        ],
+        searchable=True, csv=True,
         editable=False, deletable=False, details=False, create=False,
         user_signature=False, paginate=50,
+        left=db.asset_history.on(db.asset.id == db.asset_history.asset_id),
         maxtextlengths={'asset_history.information': 100}
     )
     return {"grid": grid}
@@ -332,16 +339,15 @@ def edit_remarks():
 
     if remarks_to_form.process().accepted:
         asset = \
-            db(db.asset.asset_id == remarks_to_form.vars.Asset).select().first()
+            db(db.asset.id == remarks_to_form.vars.Asset).select().first()
         previous_remarks = asset.remarks
-
         db.asset_history.insert(
-            asset_id=asset.asset_id,
+            asset_id=asset.id,
             asset_operation=edit_remarks_value,
             information="changing remarks from '{}'".format(previous_remarks),
             user_signature=auth.user
             )
-        db(db.asset.asset_id == remarks_to_form.vars.Asset).update(
+        db(db.asset.id == remarks_to_form.vars.Asset).update(
             remarks=remarks_to_form.vars.remarks
         )
         redirect(URL('asset', 'view.html', args=['all']), client_side=True)
@@ -402,8 +408,10 @@ def __import_assets(data, import_to_db, expected_fields):
             else:
                 assignee = auth.user
             import_to_db.add_new_asset(
-                asset_id=_.asset_id, name=_["name"],
-                procurement_id=_.procurement_id, remarks=_.remarks,
+                asset_id='NA' if _.asset_id == 'EMPTY' else _.asset_id,
+                serial_no='NA' if _.serial_no == 'EMPTY' else _.serial_no,
+                name=_["name"],procurement_id=_.procurement_id,
+                remarks=_.remarks,
                 hardware_status=_.hardware_status, assigned_to=assignee,
                 category=db(
                     db.asset_category.category == _.category).select().first(),
@@ -422,14 +430,14 @@ def __import_audit(data, expected_fields):
     error = []
     for pos, _ in data.iterrows():
         try:
-            asset = db(db.asset.asset_id == _.asset_id).select().first()
+            asset = db(db.asset.id == _.id).select().first()
             if status:
                 if _.hardware_status != "EMPTY":
                     if asset.hardware_status != _.hardware_status:
-                        db(db.asset.id == _.asset_id).update(
+                        db(db.asset.id == _.id).update(
                             hardware_status=_.hardware_status)
                         db.asset_history.insert(
-                            asset_id=_.asset_id,
+                            asset_id=_.id,
                             asset_operation=changed_status,
                             information='Asset hardware status changed '
                                         'to {}'.format(_.hardware_status),
@@ -439,20 +447,20 @@ def __import_audit(data, expected_fields):
                 if _.remarks != "EMPTY":
                     previous_remarks = asset.remarks
                     db.asset_history.insert(
-                        asset_id=asset.asset_id,
+                        asset_id=asset.id,
                         asset_operation=edit_remarks_value,
                         information="changing remarks from "
                                     "'{}'".format(previous_remarks),
                         user_signature=auth.user
                     )
-                    db(db.asset.asset_id == _.asset_id).update(
+                    db(db.asset.id == _.id).update(
                         remarks=_.remarks
                     )
             audit_time = datetime.now()
-            db(db.asset.asset_id == _.asset_id).update(
+            db(db.asset.id == _.id).update(
                 last_audited_on=audit_time)
             db.asset_history.insert(
-                asset_id=asset.asset_id, asset_operation=audited,
+                asset_id=asset.id, asset_operation=audited,
                 information='audited on: {}'.format(audit_time),
                 user_signature=auth.user
             )

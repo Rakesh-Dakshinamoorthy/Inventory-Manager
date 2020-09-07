@@ -145,7 +145,7 @@ def assign_member():
 
 def users():
     if not(auth.has_membership(role="Managers") or
-           auth.has_membership(role="Administrator")):
+           auth.has_membership(role="Admin")):
         redirect(URL('default', 'user', args=['not_authorized']))
 
     db.auth_user.id.readable = db.auth_user.password.readable = \
