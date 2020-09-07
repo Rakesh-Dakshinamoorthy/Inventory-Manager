@@ -26,7 +26,7 @@ def change_assignee_button(row):
     return A('Change Assignee',
              _class='button btn btn-secondary',
              _href='#change_assignee',
-             **{'_data-toggle': 'modal', '_data-rowid': row.asset_id}
+             **{'_data-toggle': 'modal', '_data-rowid': row.id}
              )
 
 
@@ -34,7 +34,7 @@ def edit_remarks_button(row):
     return A('Edit Remarks',
              _class='button btn btn-secondary',
              _href='#edit_remarks',
-             **{'_data-toggle': 'modal', '_data-rowid': row.asset_id,
+             **{'_data-toggle': 'modal', '_data-rowid': row.id,
                 '_data-remarks': row.remarks}
              )
 
@@ -77,7 +77,7 @@ def accept_assignee_button(row):
 def audit_button(row):
     return A(
         'Audit', _class='button btn btn-secondary', _href='#audit',
-        **{'_data-toggle': 'modal', '_data-rowid': row.asset_id}
+        **{'_data-toggle': 'modal', '_data-rowid': row.id}
     )
 
 
